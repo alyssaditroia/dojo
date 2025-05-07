@@ -30,7 +30,7 @@ let
 
     system = [ htop rsync openssh nftables ];
 
-    editors = [ vim neovim emacs ];
+    editors = [ vim neovim emacs nano ];
 
     terminal = [ tmux screen ];
 
@@ -38,7 +38,7 @@ let
 
     debugging = [ strace ltrace gdb pwndbg gef ];
 
-    reversing = [ ghidra ida-free radare2 cutter angr-management binaryninja-free ];
+    reversing = [ file ghidra ida-free radare2 cutter angr-management binaryninja-free ];
 
     web = [ firefox geckodriver ];
 

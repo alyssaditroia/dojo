@@ -67,6 +67,12 @@ let
     if [[ "$PATH" != "/run/challenge/bin:/run/workspace/bin:"* ]]; then
       export PATH="/run/challenge/bin:/run/workspace/bin:$PATH"
     fi
+
+    if [[ -z "$LANG" ]]; then
+      export LANG="C.UTF-8"
+    fi
+
+    PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
   '';
 
 in pkgs.stdenv.mkDerivation {
