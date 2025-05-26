@@ -16,12 +16,16 @@
     <link rel="stylesheet" href="{{ url_for('views.themes', path='css/fonts.css') }}">
     <link rel="stylesheet" href="{{ url_for('views.themes', path='css/main.css') }}">
     <link rel="stylesheet" href="{{ url_for('views.themes', path='css/core.css') }}">
-    <link rel="preload" href="{{ url_for('views.themes', path='font/SpaceMono-Regular.ttf') }}" as="font" type="font/ttf" crossorigin="anonymous">
-    <link rel="preload" href="{{ url_for('views.themes', path='font/SpaceMono-Bold.ttf') }}" as="font" type="font/ttf" crossorigin="anonymous">
-    <link rel="preload" href="{{ url_for('views.themes', path='font/SpaceGrotesk-VariableFont_wght.ttf') }}" as="font" type="font/ttf" crossorigin="anonymous">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- fallback fonts -->
     <style>
       @font-face {
-        font-family: 'Space Mono';
+        font-family: 'Space Mono Fallback';
         src: url("{{ url_for('views.themes', path='font/SpaceMono-Regular.ttf') }}") format('truetype');
         font-weight: 400;
         font-style: normal;
@@ -29,7 +33,7 @@
       }
 
       @font-face {
-        font-family: 'Space Mono';
+        font-family: 'Space Mono Fallback';
         src: url("{{ url_for('views.themes', path='font/SpaceMono-Bold.ttf') }}") format('truetype');
         font-weight: 700;
         font-style: normal;
@@ -37,13 +41,41 @@
       }
 
       @font-face {
-        font-family: 'Space Grotesk';
+        font-family: 'Space Grotesk Fallback';
         src: url("{{ url_for('views.themes', path='font/SpaceGrotesk-VariableFont_wght.ttf') }}") format('truetype');
         font-weight: 100 900;
         font-style: normal;
         font-display: swap;
       }
+      
+      /* Enhanced font stack with CDN primary, local fallback */
+      :root {
+        --font-grotesk: 'Space Grotesk', 'Space Grotesk Fallback', 'Helvetica Neue', Arial, sans-serif;
+        --font-mono: 'Space Mono', 'Space Mono Fallback', 'JetBrains Mono', 'Consolas', monospace;
+      }
+      
+      body, .container {
+        font-family: var(--font-grotesk);
+        font-weight: 100;
+        font-size: 1.2rem;
+      }
+      
+      .brand-mono, .nav-link {
+        font-family: var(--font-mono);
+      }
+      
+      .brand-mono-bold {
+        font-family: var(--font-mono);
+        font-weight: 700;
+      }
+      
+      h1, h2, h3, h4 {
+        font-family: var(--font-grotesk);
+        font-weight: 500;
+        color: var(--brand-green);
+      }
     </style>
+    
     <link rel="stylesheet" href="{{ url_for('views.themes', path='css/custom.css') }}">
     {% block stylesheets %}
     {% endblock %}
