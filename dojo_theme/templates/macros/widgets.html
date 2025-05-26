@@ -47,6 +47,9 @@
              data-progress="{{solve_percent|round(0, 'floor')|int}}">
           <span class="progress-bar-text">{{solve_percent|round(0, 'floor')|int}}%</span>
         </div>
+        {% else %}
+        <div class="progress-bar progress-placeholder" style="opacity: 0;">
+        </div>
         {% endif %}
       </div>
     </li>
