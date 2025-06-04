@@ -1014,7 +1014,6 @@ code {
     height: 10px;
     border-radius: 2px;
 }
-
 .stats-dashboard {
     display: grid;
     grid-template-columns: repeat(4, 265px);
@@ -1051,7 +1050,7 @@ code {
     text-transform: none;
     text-align: left;
     padding: 0;
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     font-weight: 500;
 }
 
@@ -1063,22 +1062,22 @@ code {
     height: calc(100% - 32px);
 }
 
-.stat-box:nth-child(1) {
+.stat-box:nth-child(1) { /* Total Solves */
     grid-column: 1;
     grid-row: 1;
 }
 
-.stat-box:nth-child(2) {
+.stat-box:nth-child(2) { /* Hacking Now */
     grid-column: 2;
     grid-row: 1;
 }
 
-.stat-box:nth-child(3) {
+.stat-box:nth-child(3) { /* Unique Hackers */
     grid-column: 1;
     grid-row: 2;
 }
 
-.stat-box:nth-child(4) {
+.stat-box:nth-child(4) { /* Challenges */
     grid-column: 2;
     grid-row: 2;
 }
@@ -1096,7 +1095,6 @@ code {
     font-size: 10px;
     color: var(--brand-light-gray);
     margin-bottom: 8px;
-    font-weight: 400;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1217,7 +1215,6 @@ code {
         padding: 0 16px;
     }
 }
-
 @keyframes navbar-slide-out {
     0% {
         transform: translateY(0);
