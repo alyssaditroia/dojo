@@ -1,40 +1,48 @@
-{%- macro render_stat_value(stats, field, show_neutral=True) -%}
-  {% set trend = stats.trends.get(field, 0) %}
+{%- macro render_stat_value(value, trend=0, show_neutral=True) -%}
   <div class="stat-value">
-    {{ "{:,}".format(stats.get(field, 0)) }}
+    {{ "{:,}".format(value|default(0)) }}
     {% if trend != 0 or show_neutral %}
       <span class="stat-trend {% if trend > 0 %}trend-up{% elif trend < 0 %}trend-down{% else %}trend-neutral{% endif %}">
         {% if trend > 0 %}▲{% elif trend < 0 %}▼{% else %}-{% endif %}{{ trend|abs }}%
       </span>
-    {% else %}
-      <span class="stat-trend trend-neutral"></span>
     {% endif %}
   </div>
+{%- endmacro -%}
+
+{%- macro render_stat_box(label, value, trend=0, show_neutral=True) -%}
+  <div class="stat-box">
+    <div class="stat-label">{{ label }}</div>
+    {{ render_stat_value(value, trend, show_neutral) }}
+  </div>
+{%- endmacro -%}
+
+{%- macro render_recent_list(items, empty_message) -%}
+  {% if items and items|length > 0 %}
+    {% for item in items %}
+    <div class="recent-item">
+      {% if item.user %}
+        <a href="{{ url_for('pwncollege_users.view_other', user_id=item.user_id) }}" class="brand-mono">
+          {{ item.user.name }}
+        </a>
+      {% else %}
+        {{ item.challenge_name|default('Unknown Challenge') }}
+      {% endif %}
+      <div class="recent-time">{{ item.date_display if item.date_display else (item.date.strftime('%m/%d/%y %I:%M %p') if item.date else 'Unknown time') }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="recent-item">{{ empty_message }}</div>
+  {% endif %}
 {%- endmacro -%}
 
 <div id="stats-dashboard" class="stats-dashboard">
   <div class="stat-card">
     <div class="stat-card-header">Dojo Stats</div>
     <div class="stat-container">
-      <div class="stat-box">
-        <div class="stat-label">Total Solves</div>
-        <div class="stat-value">{{ render_stat_value(stats, "solves") }}</div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-label">Hacking Now</div>
-        <div class="stat-value">{{ render_stat_value(stats, "active", show_neutral=False) }}</div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-label">Unique Hackers</div>
-        <div class="stat-value">{{ render_stat_value(stats, "users") }}</div>
-      </div>
-
-      <div class="stat-box">
-        <div class="stat-label">Challenges</div>
-        <div class="stat-value">{{ render_stat_value(stats, "challenges", show_neutral=False) }}</div>
-      </div>
+      {{ render_stat_box("Total Solves", stats.solves, stats.trends.solves) }}
+      {{ render_stat_box("Hacking Now", stats.active, stats.trends.active, show_neutral=False) }}
+      {{ render_stat_box("Unique Hackers", stats.users, stats.trends.users) }}
+      {{ render_stat_box("Challenges", stats.challenges, stats.trends.challenges, show_neutral=False) }}
     </div>
   </div>
 
@@ -42,9 +50,9 @@
     <div class="stat-card-header">Activity History</div>
     <div class="chart-container">
       <canvas id="activity-chart"
-              data-labels='{{ stats.chart_data.labels|tojson|safe if stats and stats.chart_data and stats.chart_data.labels else "[]" }}'
-              data-solves='{{ stats.chart_data.solves|tojson if stats and stats.chart_data and stats.chart_data.solves else "[]" }}'
-              data-users='{{ stats.chart_data.users|tojson if stats and stats.chart_data and stats.chart_data.users else "[]" }}'>
+              data-labels='{{ stats.chart_data.labels|tojson|safe if stats.chart_data else "[]" }}'
+              data-solves='{{ stats.chart_data.solves|tojson if stats.chart_data else "[]" }}'
+              data-users='{{ stats.chart_data.users|tojson if stats.chart_data else "[]" }}'>
       </canvas>
     </div>
   </div>
@@ -52,36 +60,14 @@
   <div class="stat-card">
     <div class="stat-card-header">Recent Awardees</div>
     <div class="recent-awards">
-      {% if awards %}
-        {% for award in awards[:3] %}
-        <div class="recent-item">
-          <a href="{{ url_for('pwncollege_users.view_other', user_id=award.user_id) }}" class="brand-mono">
-            {{ award.user.name }}
-          </a>
-          <div class="recent-time">
-              {{ award.date.strftime('%m/%d/%y %I:%M %p') if award.date else 'Unknown time' }}
-          </div>
-        </div>
-        {% endfor %}
-      {% else %}
-        <div class="recent-item">No awards yet</div>
-      {% endif %}
+      {{ render_recent_list(awards[:3] if awards else [], "No awards yet") }}
     </div>
   </div>
 
   <div class="stat-card">
     <div class="stat-card-header">Recent Solves</div>
     <div class="recent-activity">
-      {% if stats and stats.recent_solves and stats.recent_solves|length > 0 %}
-        {% for solve in stats.recent_solves %}
-        <div class="recent-item">
-          {{ solve.challenge_name if solve.challenge_name else 'Unknown Challenge' }}
-          <div class="recent-time">{{ solve.date_display if solve.date_display else 'Unknown time' }}</div>
-        </div>
-        {% endfor %}
-      {% else %}
-        <div class="recent-item">No recent solves</div>
-      {% endif %}
+      {{ render_recent_list(stats.recent_solves if stats else [], "No recent solves") }}
     </div>
   </div>
 </div>
@@ -137,35 +123,20 @@ function initializeChart() {
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      interaction: {
-        intersect: false,
-        mode: 'index'
-      },
+      interaction: { intersect: false, mode: 'index' },
       scales: {
         x: {
-          grid: {
-            display: false
-          },
-          ticks: {
-            color: '#747474',
-            maxRotation: 25,
-            minRotation: 15
-          }
+          grid: { display: false },
+          ticks: { color: '#747474', maxRotation: 25, minRotation: 15 }
         },
         y: {
           beginAtZero: true,
-          grid: {
-            color: 'rgba(72, 72, 72, 0.3)'
-          },
-          ticks: {
-            color: '#747474'
-          }
+          grid: { color: 'rgba(72, 72, 72, 0.3)' },
+          ticks: { color: '#747474' }
         }
       },
       plugins: {
-        legend: {
-          display: false
-        },
+        legend: { display: false },
         tooltip: {
           backgroundColor: 'rgba(0, 0, 0, 0.9)',
           titleColor: '#ffffff',
@@ -176,9 +147,7 @@ function initializeChart() {
           padding: 8,
           displayColors: true,
           callbacks: {
-            title: function(context) {
-              return `${context[0].label}`;
-            }
+            title: function(context) { return context[0].label; }
           }
         }
       }
@@ -186,12 +155,5 @@ function initializeChart() {
   });
 }
 
-if (document.readyState === 'loading') {
-  if (!window.chartInitialized) {
-    window.chartInitialized = true;
-    document.addEventListener('DOMContentLoaded', initializeChart);
-  }
-} else {
-  initializeChart();
-}
+document.addEventListener('DOMContentLoaded', initializeChart);
 </script>

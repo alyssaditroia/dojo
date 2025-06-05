@@ -99,3 +99,40 @@
     {% endif %}
   </ul>
 {%- endmacro %}
+
+{%- macro render_stat_value(value, trend=0, show_neutral=True) -%}
+  <div class="stat-value">
+    {{ "{:,}".format(value|default(0)) }}
+    {% if trend != 0 or show_neutral %}
+      <span class="stat-trend {% if trend > 0 %}trend-up{% elif trend < 0 %}trend-down{% else %}trend-neutral{% endif %}">
+        {% if trend > 0 %}▲{% elif trend < 0 %}▼{% else %}-{% endif %}{{ trend|abs }}%
+      </span>
+    {% endif %}
+  </div>
+{%- endmacro -%}
+
+{%- macro render_stat_box(label, value, trend=0, show_neutral=True) -%}
+  <div class="stat-box">
+    <div class="stat-label">{{ label }}</div>
+    {{ render_stat_value(value, trend, show_neutral) }}
+  </div>
+{%- endmacro -%}
+
+{%- macro render_recent_list(items, empty_message) -%}
+  {% if items and items|length > 0 %}
+    {% for item in items %}
+    <div class="recent-item">
+      {% if item.user %}
+        <a href="{{ url_for('pwncollege_users.view_other', user_id=item.user_id) }}" class="brand-mono">
+          {{ item.user.name }}
+        </a>
+      {% else %}
+        {{ item.challenge_name|default('Unknown Challenge') }}
+      {% endif %}
+      <div class="recent-time">{{ item.date_display if item.date_display else (item.date.strftime('%m/%d/%y %I:%M %p') if item.date else 'Unknown time') }}</div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="recent-item">{{ empty_message }}</div>
+  {% endif %}
+{%- endmacro -%}
