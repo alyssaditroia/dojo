@@ -1,7 +1,7 @@
 from CTFd.cache import cache
 from CTFd.models import Solves
 from datetime import datetime, timedelta
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, case
 
 from . import force_cache_updates, get_all_containers, DojoChallenges
 
@@ -12,51 +12,81 @@ def get_container_stats():
             for attr in ["dojo", "module", "challenge"]}
             for container in containers]
 
-@cache.memoize(timeout=1200, forced_update=force_cache_updates)
+@cache.memoize(timeout=600, forced_update=force_cache_updates)
 def get_dojo_stats(dojo):
+    """
+    Optimized dojo statistics with single query aggregation.
+    Uses conditional aggregation to minimize database round trips.
+    """
     now = datetime.now()
     solves_query = dojo.solves()
 
-    total_challenges = len(dojo.challenges)
-    visible_challenges = len([c for c in dojo.challenges if c.visible()])
+    # Use separate cached function for challenge counts
+    total_challenges, visible_challenges = get_dojo_challenge_counts(dojo)
 
-    total_stats = solves_query.with_entities(
+    # Single query to get all time-based stats at once
+    oldest_date = now - timedelta(days=60)
+    
+    # single query
+    stats_query = solves_query.filter(Solves.date >= oldest_date).with_entities(
+        # Total stats
         func.count(Solves.id).label('total_solves'),
-        func.count(func.distinct(Solves.user_id)).label('total_users')
+        func.count(func.distinct(Solves.user_id)).label('total_users'),
+        
+        # Daily snapshots 
+        func.sum(func.case(
+            (func.date(Solves.date) == func.date(now - timedelta(days=1)), 1), else_=0
+        )).label('today_solves'),
+        func.count(func.distinct(func.case(
+            (func.date(Solves.date) == func.date(now - timedelta(days=1)), Solves.user_id), else_=None
+        ))).label('today_users'),
+        
+        func.sum(func.case(
+            (func.date(Solves.date) == func.date(now - timedelta(days=7)), 1), else_=0
+        )).label('week_solves'),
+        func.count(func.distinct(func.case(
+            (func.date(Solves.date) == func.date(now - timedelta(days=7)), Solves.user_id), else_=None
+        ))).label('week_users'),
+        
+        func.sum(func.case(
+            (func.date(Solves.date) == func.date(now - timedelta(days=30)), 1), else_=0
+        )).label('month_solves'),
+        func.count(func.distinct(func.case(
+            (func.date(Solves.date) == func.date(now - timedelta(days=30)), Solves.user_id), else_=None
+        ))).label('month_users'),
+        
+        func.sum(func.case(
+            (func.date(Solves.date) == func.date(now - timedelta(days=60)), 1), else_=0
+        )).label('two_months_solves'),
+        func.count(func.distinct(func.case(
+            (func.date(Solves.date) == func.date(now - timedelta(days=60)), Solves.user_id), else_=None
+        ))).label('two_months_users')
     ).first()
 
-    total_solves = total_stats.total_solves or 0
-    total_users = total_stats.total_users or 0
-
-    # chart data
-    snapshot_days = [1, 7, 30, 60]
+    total_solves = stats_query.total_solves or 0
+    total_users = stats_query.total_users or 0
+    
+    # Extract chart data from single query result
+    chart_solves = [
+        stats_query.today_solves or 0,
+        stats_query.week_solves or 0,
+        stats_query.month_solves or 0,
+        stats_query.two_months_solves or 0
+    ]
+    chart_users = [
+        stats_query.today_users or 0,
+        stats_query.week_users or 0,
+        stats_query.month_users or 0,
+        stats_query.two_months_users or 0
+    ]
+    
     chart_labels = ['Today', '1w ago', '1mo ago', '2mo ago']
-    chart_solves = []
-    chart_users = []
 
-    for days_ago in snapshot_days:
-        # get day given how many days ago
-        snapshot_date = now - timedelta(days=days_ago)
-        day_start = snapshot_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        day_end = day_start + timedelta(days=1)
-
-        # get day info
-        day_stats = solves_query.filter(
-            Solves.date >= day_start,
-            Solves.date < day_end
-        ).with_entities(
-            func.count(Solves.id).label('day_solves'),
-            func.count(func.distinct(Solves.user_id)).label('day_users')
-        ).first()
-
-        chart_solves.append(day_stats.day_solves or 0)
-        chart_users.append(day_stats.day_users or 0)
-
-    # recent solves data
-    basic_query = (
+    # Separate query for recent solves with join
+    recent_solves_query = (
         solves_query
         .with_entities(
-            Solves.date.label('date'),
+            Solves.date,
             DojoChallenges.name.label('challenge_name')
         )
         .filter(Solves.date >= now - timedelta(days=7))
@@ -71,7 +101,7 @@ def get_dojo_stats(dojo):
             'date': solve.date,
             'date_display': solve.date.strftime('%m/%d/%y %I:%M %p') if solve.date else 'Unknown time'
         }
-        for solve in basic_query
+        for solve in recent_solves_query
     ]
 
     def trend_calc(current, previous):
@@ -100,3 +130,13 @@ def get_dojo_stats(dojo):
             'users': chart_users
         }
     }
+
+@cache.memoize(timeout=3600, forced_update=force_cache_updates)
+def get_dojo_challenge_counts(dojo):
+    """
+    Separate function to cache challenge counts since they change less frequently.
+    """
+    total_challenges = len(dojo.challenges)
+    visible_challenges = len([c for c in dojo.challenges if c.visible()])
+    return total_challenges, visible_challenges
+
