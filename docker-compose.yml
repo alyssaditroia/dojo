@@ -72,7 +72,7 @@ services:
     restart: always
     hostname: ctfd
     build: /opt/CTFd
-    platform: linux/amd64
+    platform: linux/arm64
     user: root
     entrypoint: ""
     command:

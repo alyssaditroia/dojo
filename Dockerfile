@@ -24,6 +24,9 @@ RUN --mount=type=cache,target=/var/cache/apt,sharing=locked \
         unzip
         wget
         wireguard
+        python3
+        python3-pip
+        python3-venv
 EOF
 
 RUN <<EOF
@@ -38,13 +41,13 @@ ADD https://raw.githubusercontent.com/moby/profiles/master/seccomp/default.json 
 
 RUN <<EOF
 KATA_VERSION=3.19.1
-curl -L https://github.com/kata-containers/kata-containers/releases/download/${KATA_VERSION}/kata-static-${KATA_VERSION}-amd64.tar.xz | tar -xJ --strip-components=2 -C /opt
+curl -L https://github.com/kata-containers/kata-containers/releases/download/${KATA_VERSION}/kata-static-${KATA_VERSION}-arm64.tar.xz | tar -xJ --strip-components=2 -C /opt
 ln -s /opt/kata/bin/containerd-shim-kata-v2 /usr/local/bin/containerd-shim-kata-v2
 EOF
 
 RUN <<EOF
 cd /tmp
-wget -O aws.zip "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+wget -O aws.zip "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"
 unzip aws.zip
 ./aws/install
 rm -rf aws.zip aws
