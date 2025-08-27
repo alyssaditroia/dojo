@@ -2,103 +2,118 @@
 {% from "macros/widgets.html" import card %}
 
 {% block content %}
-<div class="jumbotron">
-  <div class="container">
+
+<div class="dojo-header">
     <h1 class="brand-white brand-mono-bold">{{ dojo.name or dojo.id }}<span class="brand-dot">.</span></h1>
+    {% if dojo_user.type == "admin" or user.type == "admin" %}
+  <div class="col-lg-auto m-1">
+    <figure style="margin-bottom: 0;">
+      <a class="text-decoration-none" href="{{ url_for('pwncollege_dojo.view_dojo_admin', dojo=dojo.reference_id) }}">
+        <i class="fas fa-users-cog fa-2x"></i>
+        <figcaption><b>Admin</b></figcaption>
+      </a>
+    </figure>
   </div>
+  {% endif %}
 </div>
-<div class="container">
+  <div class="dojo-columns">
   {% include "components/errors.html" %}
 
-  {% if dojo.description %}
-  <div>
-    {% if description_edit_url %}
-      <a href="{{ description_edit_url }}" 
-         target="_blank" 
-         class="github-edit-link"
-         title="Edit on GitHub">
-        <i class="fas fa-edit"></i>
-      </a>
-    {% endif %}
-    {{ dojo.description | markdown }}
-  </div>
-  <br>
-  {% endif %}
-
-  <div class="row text-center">
-    {% if dojo.course and user %}
-    <div class="col-lg-auto m-3">
-      <figure>
-        <a class="text-decoration-none" href="{{ url_for('course.view_course', dojo=dojo.reference_id) }}">
-          <i class="fas fa-graduation-cap fa-3x"></i>
-          <figcaption><b>Course</b></figcaption>
-        </a>
-      </figure>
+  <div class="dojo-main">
+    {% if dojo.description %}
+    <div class="description-container">
+      <div class="description-header">
+        <div class="description-title">Overview</div>
+        {% if description_edit_url %}
+          <a href="{{ description_edit_url }}" target="_blank" class="github-edit-link" title="Edit on GitHub">
+            <i class="fas fa-edit"></i>
+          </a>
+        {% endif %}
+      </div>
+      <div class="description-body">
+        {{ dojo.description | markdown }}
+      </div>
     </div>
     {% endif %}
-    {% if dojo_user.type == "admin" or user.type == "admin" %}
-    <div class="col-lg-auto m-3">
-      <figure>
-        <a class="text-decoration-none" href="{{ url_for('pwncollege_dojo.view_dojo_admin', dojo=dojo.reference_id) }}">
-          <i class="fas fa-users-cog fa-3x"></i>
-          <figcaption><b>Admin</b></figcaption>
-        </a>
-      </figure>
+
+    <div class="row text-center">
+      {% if dojo.course and user %}
+      <div class="col-lg-auto m-3">
+        <figure style="margin-bottom: 0;">
+          <a class="text-decoration-none" href="{{ url_for('course.view_course', dojo=dojo.reference_id) }}">
+            <i class="fas fa-graduation-cap fa-3x"></i>
+            <figcaption><b>Course</b></figcaption>
+          </a>
+        </figure>
+      </div>
+      {% endif %}
     </div>
+
+    {# Modules moved into left column #}
+    {% if dojo.modules %}
+      <div class="description-header">
+        <div class="description-title">Modules</div>
+      </div>
+    <ul class="card-list">
+      {% for module in dojo.modules %}
+      {% set container_count = module_container_counts.get(module.id, 0) %}
+      {% set num_challs = module.visible_challenges() | length %}
+      {% set num_solved = module.solves(user=user, ignore_visibility=True, ignore_admins=False).count() if user else 0 %}
+      {% if module.visible() or dojo.is_admin(user) %}
+        {{ card(
+          url_for('pwncollege_dojo.view_dojo_path', dojo=dojo_id, path=module.id),
+          title=module.name or module.id,
+          text_lines = [
+            "{} Hacking".format(container_count) if container_count > 0 else "",
+            "{} / {}".format(
+              module.solves(user=user, ignore_visibility=True, ignore_admins=False).count() if user else 0,
+              module.visible_challenges() | length
+            ),
+            "hidden" if not module.visible()
+          ],
+          solve_percent=(num_solved / num_challs) * 100 if num_challs else 0,
+        ) }}
+      {% endif %}
+      {% endfor %}
+    </ul>
     {% endif %}
   </div>
 
-  <br>
-
-  {% if dojo.award and dojo.award.get("emoji") %}
-  <h2 class="row">Award: <b>{{ dojo.award["emoji"] }}</b></h2>
-  <br>
-  {% endif %}
-
-  {% if dojo.modules %}
-  <h2 class="row">Stats</h2>
-  {% include "components/stat_dashboard.html" %}
-  <div class="row"></div>
-
-  <br>
-
-  <h2 class="row">Modules</h2>
-  <br>
-  <ul class="card-list">
-    {% for module in dojo.modules %}
-    {% set container_count = module_container_counts.get(module.id, 0) %}
-    {% set num_challs = module.visible_challenges() | length %}
-    {% set num_solved = module.solves(user=user, ignore_visibility=True, ignore_admins=False).count() if user else 0 %}
-    {% if module.visible() or dojo.is_admin(user) %}
-      {{ card(
-        url_for('pwncollege_dojo.view_dojo_path', dojo=dojo_id, path=module.id),
-	title=module.name or module.id,
-        text_lines = [
-          "{} Hacking".format(container_count) if container_count > 0 else "",
-          "{} / {}".format(
-            module.solves(user=user, ignore_visibility=True, ignore_admins=False).count() if user else 0,
-            module.visible_challenges() | length
-          ),
-	  "hidden" if not module.visible()
-        ],
-        solve_percent=(num_solved / num_challs) * 100 if num_challs else 0,
-      ) }}
+  <aside class="dojo-side">
+    {% if dojo.award and dojo.award.get("emoji") %}
+    <div class="award-container">
+      <div class="description-header">
+        <div class="description-title">Award</div>
+      </div>
+      <div class="dojo-award">{{ dojo.award["emoji"] }}</div>
+    </div>
     {% endif %}
-    {% endfor %}
-  </ul>
 
-  {% if dojo.show_scoreboard %}
-  <br>
+    {% if dojo.modules %}
+    <div class="side-card">
+      <div class="description-header">
+        <div class="description-title">Stats</div>
+      </div>
+      <div class="side-card-body">
+        {% include "components/stat_dashboard.html" %}
+      </div>
+    </div>
+    {% endif %}
 
-  <h2 class="row" id="scoreboard-heading">30-Day Scoreboard:</h2>
-  <br>
-  {% from "macros/scoreboard.html" import scoreboard %}
-  {{ scoreboard() }}
-
-  {% endif %}
-
-  {% endif %}
+    {% if dojo.show_scoreboard %}
+    <div class="side-card">
+      <div class="description-header">
+        <div class="description-title">Scoreboard</div>
+      </div>
+      <div class="side-card-body">
+        {% from "macros/scoreboard.html" import scoreboard %}
+        {{ scoreboard() }}
+      </div>
+    </div>
+    {% endif %}
+  </aside>
 </div>
+
 {% endblock %}
 
 {% block scripts %}
