@@ -349,7 +349,6 @@ p[data-hide="true"] {
   display:flex;
   align-items:center;
   justify-content:space-between;
-  text-transform: uppercase;
 }
 
 .description-body {
@@ -417,7 +416,6 @@ p[data-hide="true"] {
     padding-bottom: 8px;
     line-height: 1.4;
     overflow: hidden;
-    text-transform: uppercase;
     overflow-wrap: normal;
     text-overflow: ellipsis;
 }
@@ -474,7 +472,6 @@ p[data-hide="true"] {
     color: var(--brand-white);
     font-size: 0.875rem;
     font-weight: 400;
-    text-transform: uppercase;
 }
 
 .card-icon {
@@ -973,7 +970,6 @@ code {
     padding: 0;
     margin-bottom: 8px;
     font-weight: 500;
-    text-transform: uppercase;
 }
 
 .stat-container {
@@ -1020,7 +1016,6 @@ code {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    text-transform: uppercase;
 }
 
 .stat-value {
@@ -1097,7 +1092,6 @@ code {
     color: var(--brand-white);
     transition: background 0.2s ease;
     margin-bottom: 2px;
-    text-transform: uppercase;
 }
 
 .recent-item:hover {
