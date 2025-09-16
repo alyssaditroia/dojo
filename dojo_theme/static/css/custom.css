@@ -288,8 +288,16 @@ p[data-hide="true"] {
     flex-direction: row;
     align-items: flex-start;
     justify-content: space-between;
-    margin: 1rem 0 0.5rem 0;
-    padding: 1rem 1rem 0.5rem 1rem;
+    margin: 1rem 0 0.75rem 0;
+    padding: 1rem 2rem 0.5rem 2rem;
+}
+
+.scoreboard-controls.row,
+.scoreboard.row {
+   padding-top: 0.25rem;
+    margin: 0 1rem;
+    overflow: auto;
+    scrollbar-width: thin;
 }
 
 .dojo-columns {
@@ -326,7 +334,6 @@ p[data-hide="true"] {
   border-radius: 8px;
   background: rgba(255,255,255,0.02);
   border: 1px solid rgba(255,255,255,0.06);
-  overflow: hidden;
 }
 
 .award-container { display:flex; flex-direction:column;}

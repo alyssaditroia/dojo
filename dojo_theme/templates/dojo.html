@@ -88,6 +88,15 @@
       <div class="dojo-award">{{ dojo.award["emoji"] }}</div>
     </div>
     {% endif %}
+    {% set icon=url_for("pwncollege_belts.view_belt", color=dojo.award.belt) if (dojo.award.belt and dojo.official) else None %}
+    {% if icon %}
+    <div class="award-container">
+      <div class="description-header">
+        <div class="description-title">Award</div>
+      </div>
+      <img class="dojo-award" src="{{ icon }}" alt="Award Icon" style="width: 40%; margin: 0.5rem auto;">
+    </div>
+    {% endif %}
 
     {% if dojo.modules %}
     <div class="side-card">
