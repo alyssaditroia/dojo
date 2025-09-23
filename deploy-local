@@ -13,13 +13,16 @@ PROD_MODE=false
 export DOJO_PATH="./"
 export DATA_PATH="./data"
 
-while getopts "wph" opt; do
+while getopts "wphl" opt; do
     case $opt in
     w)
         REBUILD_WORKSPACE=true
         ;;
     p)
         PROD_MODE=true
+        ;;
+    l)
+        LOCAL=true
         ;;
     h)
         usage
@@ -45,10 +48,19 @@ fi
 if [ "$PROD_MODE" = true ]; then
     echo "Running in production mode"
     export DOJO_HOST="dojo.dlock.tech"
-    export CORS_ORIGINS="https://app.dlock.tech"
+    export FRONTEND_HOST="app.dlock.tech"
+    export CORS_ORIGINS="https://${FRONTEND_HOST}"
 else
-    export DOJO_HOST="localhost"
-    export CORS_ORIGINS="http://localhost:3000"
+
+    export DOJO_HOST="dojo.localhost"
+
+    if [ "$LOCAL" = true ]; then
+        echo "Running in local mode"
+        export FRONTEND_HOST="app.dojo.localhost"
+        export CORS_ORIGINS="http://${FRONTEND_HOST}"
+    else
+        export CORS_ORIGINS="http://localhost:3000"
+    fi
 fi
 
 docker build -t pwncollege/dojo .
@@ -66,6 +78,7 @@ docker run \
     -e INTERNET_FOR_ALL=True \
     -e CORS_ORIGINS="${CORS_ORIGINS}" \
     -e DOJO_HOST="${DOJO_HOST}" \
+    -e FRONTEND_HOST="${FRONTEND_HOST}" \
     -e LETSENCRYPT_HOST="${DOJO_HOST}" \
     -e VIRTUAL_HOST="${DOJO_HOST}" \
     -d \

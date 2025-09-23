@@ -1,39 +1,54 @@
-# Multi-stage build for React app
-FROM oven/bun:alpine AS builder
+# -----------------------------------------------------------------------------
+# This Dockerfile.bun is specifically configured for projects using Bun
+# For npm/pnpm or yarn, refer to the Dockerfile instead
+# -----------------------------------------------------------------------------
+
+# Use Bun's official image
+FROM oven/bun:1 AS base
 
 WORKDIR /app
 
-# Accept build arguments
-ARG VITE_CTFD_API_URL
-ARG VITE_DOJO_API_URL
-ARG VITE_DOJO_BASE_URL
-
-ENV VITE_CTFD_API_URL=$VITE_CTFD_API_URL
-ENV VITE_DOJO_API_URL=$VITE_DOJO_API_URL
-ENV VITE_DOJO_BASE_URL=$VITE_DOJO_BASE_URL
-
-# Copy package files
+# Install dependencies with bun
+FROM base AS deps
 COPY package.json bun.lock* ./
+RUN bun install --no-save --frozen-lockfile
 
-# Install dependencies using bun
-RUN bun install
-
-# Copy source code
+# Rebuild the source code only when needed
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# Build the application
+# Next.js collects completely anonymous telemetry data about general usage.
+# Learn more here: https://nextjs.org/telemetry
+# Uncomment the following line in case you want to disable telemetry during the build.
+# ENV NEXT_TELEMETRY_DISABLED=1
+
 RUN bun run build
 
-# Production stage
-FROM nginx:alpine
+# Production image, copy all the files and run next
+FROM base AS runner
+WORKDIR /app
 
-# Copy built files
-COPY --from=builder /app/dist /usr/share/nginx/html
+# Uncomment the following line in case you want to disable telemetry during runtime.
+# ENV NEXT_TELEMETRY_DISABLED=1
 
-# Copy custom nginx config
-COPY nginx.conf /etc/nginx/nginx.conf
+ENV NODE_ENV=production \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
 
-# Expose port 80
-EXPOSE 80
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-CMD ["nginx", "-g", "daemon off;"]
+COPY --from=builder /app/public ./public
+
+# Automatically leverage output traces to reduce image size
+# https://nextjs.org/docs/advanced-features/output-file-tracing
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
+
+EXPOSE 3000
+
+CMD ["bun", "./server.js"]
