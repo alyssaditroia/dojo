@@ -33,6 +33,7 @@ class ApiClient {
     const url = `${this.baseUrl}${endpoint}`
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
+      'Authorization': `Bearer fake`,
     }
 
     // Add any additional headers

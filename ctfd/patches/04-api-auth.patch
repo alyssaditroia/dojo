@@ -18,98 +18,18 @@ index c2a4d50e..00377896 100644
  CTFd_API_v1.add_namespace(challenges_namespace, "/challenges")
  CTFd_API_v1.add_namespace(tags_namespace, "/tags")
  CTFd_API_v1.add_namespace(topics_namespace, "/topics")
-diff --git a/CTFd/utils/initialization/__init__.py b/CTFd/utils/initialization/__init__.py
-index 5f38bf41..ed8981cb 100644
---- a/CTFd/utils/initialization/__init__.py
-+++ b/CTFd/utils/initialization/__init__.py
-@@ -3,7 +3,7 @@ import logging
- import os
- import sys
- 
--from flask import abort, redirect, render_template, request, session, url_for
-+from flask import abort, redirect, render_template, request, session, url_for, make_response
- from sqlalchemy.exc import IntegrityError, InvalidRequestError
- from werkzeug.middleware.dispatcher import DispatcherMiddleware
- 
-@@ -301,6 +301,18 @@ def init_request_processors(app):
-             func = app.view_functions[request.endpoint]
-         except KeyError:
-             abort(404)
-+
-+        # Bypass CSRF for auth API endpoints and dojo plugin endpoints
-+        auth_endpoints = [
-+            'api.auth_register',
-+            'api.auth_login',
-+            'api.auth_verify_email',
-+            'api.auth_forgot_password',
-+            'api.auth_reset_password'
-+        ]
-+        # Also bypass CSRF for dojo plugin API endpoints
-+        if request.endpoint in auth_endpoints or request.path.startswith('/pwncollege_api/'):
-+            return
-+
-         if hasattr(func, "_bypass_csrf"):
-             return
-         if request.headers.get("Authorization"):
-@@ -315,6 +327,45 @@ def init_request_processors(app):
-                 if session["nonce"] != request.form.get("nonce"):
-                     abort(403)
- 
-+    @app.after_request
-+    def add_cors_headers(response):
-+        # Only add CORS headers for API endpoints
-+        if request.path.startswith("/api/"):
-+            # Get allowed origins from environment variable (comma-separated)
-+            cors_origins_env = os.environ.get("CORS_ORIGINS", "")
-+            allowed_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
-+            origin = request.headers.get("Origin")
-+
-+            # Only allow specifically configured origins
-+            if origin and origin in allowed_origins:
-+                response.headers["Access-Control-Allow-Origin"] = origin
-+                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-+                response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, CSRF-Token"
-+                response.headers["Access-Control-Max-Age"] = "3600"
-+                response.headers["Access-Control-Allow-Credentials"] = "true"
-+
-+        return response
-+
-+    @app.before_request
-+    def handle_preflight():
-+        # Handle OPTIONS preflight requests for CORS
-+        if request.method == "OPTIONS" and request.path.startswith("/api/"):
-+            response = make_response()
-+            # Get allowed origins from environment variable (comma-separated)
-+            cors_origins_env = os.environ.get("CORS_ORIGINS", "")
-+            allowed_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
-+            origin = request.headers.get("Origin")
-+
-+            # Only allow specifically configured origins
-+            if origin and origin in allowed_origins:
-+                response.headers["Access-Control-Allow-Origin"] = origin
-+                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
-+                response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, CSRF-Token"
-+                response.headers["Access-Control-Max-Age"] = "3600"
-+                response.headers["Access-Control-Allow-Credentials"] = "true"
-+
-+            return response
-+
-     application_root = app.config.get("APPLICATION_ROOT")
-     if application_root != "/":
- 
 diff --git a/CTFd/api/v1/auth.py b/CTFd/api/v1/auth.py
 new file mode 100644
-index 0000000..182c6fa515655e65e0f3edc6319bcf829cddcc87
+index 00000000..36c226dc
 --- /dev/null
 +++ b/CTFd/api/v1/auth.py
-@@ -0,0 +1,315 @@
+@@ -0,0 +1,327 @@
 +import datetime
-+from flask import request
++from flask import request, session
 +from flask_restx import Namespace, Resource
 +from CTFd.models import Users, UserFieldEntries, UserFields, db
 +from CTFd.utils import validators, email, get_config
 +from CTFd.utils.crypto import verify_password
-+from CTFd.utils.security.auth import generate_user_token
 +from CTFd.utils.config.visibility import registration_visible
 +from CTFd.utils.validators import ValidationError
 +from CTFd.utils.config import can_send_mail
@@ -123,9 +43,9 @@ index 0000000..182c6fa515655e65e0f3edc6319bcf829cddcc87
 +@auth_namespace.route("/register")
 +class Register(Resource):
 +    @auth_namespace.doc(
-+        description="Register a new user and receive an API token",
++        description="Register a new user and set session",
 +        responses={
-+            200: ("Success", "TokenResponse"),
++            200: ("Success", "SuccessResponse"),
 +            400: ("Validation error", "ErrorResponse"),
 +            403: ("Registration disabled", "ErrorResponse"),
 +        },
@@ -233,16 +153,12 @@ index 0000000..182c6fa515655e65e0f3edc6319bcf829cddcc87
 +            if can_send_mail():
 +                email.successful_registration_notification(user.email)
 +
-+        # Set session cookie directly instead of returning token
-+        from flask import session
-+        import os
-+
-+        session.permanent = True
++        # Set session
 +        session["id"] = user.id
 +        session["name"] = user.name
-+        session["email"] = user.email
 +        session["type"] = user.type
-+        session["nonce"] = os.urandom(32).hex()
++        session["verified"] = verified
++        session.permanent = True
 +
 +        return {
 +            "success": True,
@@ -258,9 +174,9 @@ index 0000000..182c6fa515655e65e0f3edc6319bcf829cddcc87
 +@auth_namespace.route("/login")
 +class Login(Resource):
 +    @auth_namespace.doc(
-+        description="Login and receive an API token",
++        description="Login and set session",
 +        responses={
-+            200: ("Success", "TokenResponse"),
++            200: ("Success", "SuccessResponse"),
 +            401: ("Invalid credentials", "ErrorResponse"),
 +        },
 +    )
@@ -283,22 +199,12 @@ index 0000000..182c6fa515655e65e0f3edc6319bcf829cddcc87
 +                }, 401
 +
 +            if verify_password(password, user.password):
-+                # Generate token with optional expiration
-+                if req.get("remember_me"):
-+                    expiration = None  # No expiration for remember me
-+                else:
-+                    expiration = datetime.datetime.utcnow() + datetime.timedelta(days=30)
-+
-+                # Set session cookie directly instead of returning token
-+                from flask import session
-+                import os
-+
-+                session.permanent = True
++                # Set session
 +                session["id"] = user.id
 +                session["name"] = user.name
-+                session["email"] = user.email
 +                session["type"] = user.type
-+                session["nonce"] = os.urandom(32).hex()
++                session["verified"] = user.verified
++                session.permanent = req.get("remember_me", False)
 +
 +                return {
 +                    "success": True,
@@ -313,6 +219,22 @@ index 0000000..182c6fa515655e65e0f3edc6319bcf829cddcc87
 +                }
 +
 +        return {"success": False, "errors": ["Invalid credentials"]}, 401
++
++
++@auth_namespace.route("/logout")
++class Logout(Resource):
++    @auth_namespace.doc(
++        description="Logout and clear session",
++        responses={
++            200: ("Success", "SuccessResponse"),
++        },
++    )
++    def post(self):
++        session.clear()
++        return {
++            "success": True,
++            "data": {"message": "Successfully logged out"}
++        }
 +
 +
 +@auth_namespace.route("/verify/<token>")
@@ -429,3 +351,73 @@ index 0000000..182c6fa515655e65e0f3edc6319bcf829cddcc87
 +            "success": True,
 +            "data": {"message": "Password successfully reset"}
 +        }
+\ No newline at end of file
+diff --git a/CTFd/utils/initialization/__init__.py b/CTFd/utils/initialization/__init__.py
+index 5f38bf41..9b79ab62 100644
+--- a/CTFd/utils/initialization/__init__.py
++++ b/CTFd/utils/initialization/__init__.py
+@@ -3,7 +3,7 @@ import logging
+ import os
+ import sys
+ 
+-from flask import abort, redirect, render_template, request, session, url_for
++from flask import abort, redirect, render_template, request, session, url_for, make_response
+ from sqlalchemy.exc import IntegrityError, InvalidRequestError
+ from werkzeug.middleware.dispatcher import DispatcherMiddleware
+ 
+@@ -301,6 +301,9 @@ def init_request_processors(app):
+             func = app.view_functions[request.endpoint]
+         except KeyError:
+             abort(404)
++        # Bypass CSRF for all API endpoints
++        if request.path.startswith("/api/"):
++            return
+         if hasattr(func, "_bypass_csrf"):
+             return
+         if request.headers.get("Authorization"):
+@@ -315,6 +318,45 @@ def init_request_processors(app):
+                 if session["nonce"] != request.form.get("nonce"):
+                     abort(403)
+ 
++    @app.before_request
++    def handle_preflight():
++        # Handle OPTIONS preflight requests for CORS
++        if request.method == "OPTIONS" and request.path.startswith("/api/"):
++            response = make_response()
++            # Get allowed origins from environment variable (comma-separated)
++            cors_origins_env = os.environ.get("CORS_ORIGINS", "")
++            allowed_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
++            origin = request.headers.get("Origin")
++
++            # Only allow specifically configured origins
++            if origin and origin in allowed_origins:
++                response.headers["Access-Control-Allow-Origin"] = origin
++                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
++                response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, CSRF-Token"
++                response.headers["Access-Control-Max-Age"] = "3600"
++                response.headers["Access-Control-Allow-Credentials"] = "true"
++
++            return response
++
++    @app.after_request
++    def add_cors_headers(response):
++        # Only add CORS headers for API endpoints
++        if request.path.startswith("/api/"):
++            # Get allowed origins from environment variable (comma-separated)
++            cors_origins_env = os.environ.get("CORS_ORIGINS", "")
++            allowed_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
++            origin = request.headers.get("Origin")
++
++            # Only allow specifically configured origins
++            if origin and origin in allowed_origins:
++                response.headers["Access-Control-Allow-Origin"] = origin
++                response.headers["Access-Control-Allow-Methods"] = "GET, POST, PUT, DELETE, PATCH, OPTIONS"
++                response.headers["Access-Control-Allow-Headers"] = "Content-Type, Authorization, CSRF-Token"
++                response.headers["Access-Control-Max-Age"] = "3600"
++                response.headers["Access-Control-Allow-Credentials"] = "true"
++
++        return response
++
+     application_root = app.config.get("APPLICATION_ROOT")
+     if application_root != "/":
+ 
