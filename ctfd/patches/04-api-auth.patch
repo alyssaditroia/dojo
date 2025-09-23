@@ -36,7 +36,7 @@ index 5f38bf41..ed8981cb 100644
          except KeyError:
              abort(404)
 +
-+        # Bypass CSRF for auth API endpoints
++        # Bypass CSRF for auth API endpoints and dojo plugin endpoints
 +        auth_endpoints = [
 +            'api.auth_register',
 +            'api.auth_login',
@@ -44,7 +44,8 @@ index 5f38bf41..ed8981cb 100644
 +            'api.auth_forgot_password',
 +            'api.auth_reset_password'
 +        ]
-+        if request.endpoint in auth_endpoints:
++        # Also bypass CSRF for dojo plugin API endpoints
++        if request.endpoint in auth_endpoints or request.path.startswith('/pwncollege_api/'):
 +            return
 +
          if hasattr(func, "_bypass_csrf"):
@@ -232,13 +233,20 @@ index 0000000..182c6fa515655e65e0f3edc6319bcf829cddcc87
 +            if can_send_mail():
 +                email.successful_registration_notification(user.email)
 +
-+        # Generate token
-+        token = generate_user_token(user, description="Registration Token")
++        # Set session cookie directly instead of returning token
++        from flask import session
++        import os
++
++        session.permanent = True
++        session["id"] = user.id
++        session["name"] = user.name
++        session["email"] = user.email
++        session["type"] = user.type
++        session["nonce"] = os.urandom(32).hex()
 +
 +        return {
 +            "success": True,
 +            "data": {
-+                "token": token.value,
 +                "user_id": user.id,
 +                "username": user.name,
 +                "email": user.email,
@@ -281,16 +289,20 @@ index 0000000..182c6fa515655e65e0f3edc6319bcf829cddcc87
 +                else:
 +                    expiration = datetime.datetime.utcnow() + datetime.timedelta(days=30)
 +
-+                token = generate_user_token(
-+                    user,
-+                    description="API Login Token",
-+                    expiration=expiration
-+                )
++                # Set session cookie directly instead of returning token
++                from flask import session
++                import os
++
++                session.permanent = True
++                session["id"] = user.id
++                session["name"] = user.name
++                session["email"] = user.email
++                session["type"] = user.type
++                session["nonce"] = os.urandom(32).hex()
 +
 +                return {
 +                    "success": True,
 +                    "data": {
-+                        "token": token.value,
 +                        "user_id": user.id,
 +                        "username": user.name,
 +                        "email": user.email,

@@ -27,7 +27,6 @@ export interface ChangePasswordData {
 export interface AuthResponse {
   success: boolean
   data?: {
-    token: string
     user_id: number
     username: string
     email: string
@@ -43,9 +42,7 @@ class AuthService {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
     const response = await ctfdApiClient.post<AuthResponse>('/auth/login', credentials)
 
-    if (response.success && response.data?.token) {
-      ctfdApiClient.setToken(response.data.token)
-      dojoApiClient.setToken(response.data.token)  // Set token for dojo API as well
+    if (response.success && response.data) {
       // Store user data locally
       localStorage.setItem('ctfd_user', JSON.stringify(response.data))
     }
@@ -56,9 +53,7 @@ class AuthService {
   async register(data: RegisterData): Promise<AuthResponse> {
     const response = await ctfdApiClient.post<AuthResponse>('/auth/register', data)
 
-    if (response.success && response.data?.token) {
-      ctfdApiClient.setToken(response.data.token)
-      dojoApiClient.setToken(response.data.token)  // Set token for dojo API as well
+    if (response.success && response.data) {
       // Store user data locally
       localStorage.setItem('ctfd_user', JSON.stringify(response.data))
     }
@@ -67,8 +62,13 @@ class AuthService {
   }
 
   async logout(): Promise<{ success: boolean }> {
-    ctfdApiClient.clearToken()
-    dojoApiClient.clearToken()  // Clear token for dojo API as well
+    // Clear the session cookie by calling logout endpoint
+    try {
+      await ctfdApiClient.post('/auth/logout')
+    } catch (error) {
+      // Ignore errors on logout
+    }
+
     localStorage.removeItem('ctfd_user')
     return { success: true }
   }
@@ -86,11 +86,7 @@ class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!localStorage.getItem('ctfd_token')
-  }
-
-  getToken(): string | null {
-    return localStorage.getItem('ctfd_token')
+    return !!localStorage.getItem('ctfd_user')
   }
 
   getCurrentUser() {

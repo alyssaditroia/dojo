@@ -15,6 +15,7 @@ from .v1.workspace_tokens import workspace_tokens_namespace
 from .v1.workspace import workspace_namespace
 from .v1.search import search_namespace
 from .v1.test_error import test_error_namespace
+from .v1.user import user_namespace
 
 api = Blueprint("pwncollege_api", __name__)
 
@@ -50,6 +51,8 @@ def handle_api_exception(error):
     log_exception(error, event_type="api_exception")
     raise
 
+
+api_v1.add_namespace(user_namespace, "/user")
 api_v1.add_namespace(belts_namespace, "/belts")
 api_v1.add_namespace(discord_namespace, "/discord")
 api_v1.add_namespace(docker_namespace, "/docker")

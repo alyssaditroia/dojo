@@ -21,28 +21,9 @@ export class ApiError extends Error {
 
 class ApiClient {
   private baseUrl: string
-  private token: string | null = null
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
-    // Only access localStorage if we're in the browser
-    if (typeof window !== 'undefined') {
-      this.token = localStorage.getItem('ctfd_token')
-    }
-  }
-
-  setToken(token: string) {
-    this.token = token
-    if (typeof window !== 'undefined') {
-      localStorage.setItem('ctfd_token', token)
-    }
-  }
-
-  clearToken() {
-    this.token = null
-    if (typeof window !== 'undefined') {
-      localStorage.removeItem('ctfd_token')
-    }
   }
 
   private async request<T>(
@@ -57,10 +38,6 @@ class ApiClient {
     // Add any additional headers
     if (options.headers) {
       Object.assign(headers, options.headers)
-    }
-
-    if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`
     }
 
     try {
@@ -134,14 +111,6 @@ class ApiClient {
 export const ctfdApiClient = new ApiClient(CTFD_API_BASE_URL)
 export const dojoApiClient = new ApiClient(DOJO_API_BASE_URL)
 
-// Initialize tokens on both clients if available (only in browser)
-if (typeof window !== 'undefined') {
-  const storedToken = localStorage.getItem('ctfd_token')
-  if (storedToken) {
-    ctfdApiClient.setToken(storedToken)
-    dojoApiClient.setToken(storedToken)
-  }
-}
 
 // Keep the default client pointing to dojo API for backwards compatibility
 export const apiClient = dojoApiClient
