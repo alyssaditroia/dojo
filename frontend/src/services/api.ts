@@ -1,5 +1,5 @@
-export const CTFD_API_BASE_URL = import.meta.env.VITE_CTFD_API_URL 
-export const DOJO_API_BASE_URL = import.meta.env.VITE_DOJO_API_URL
+export const CTFD_API_BASE_URL = process.env.NEXT_PUBLIC_CTFD_API_URL
+export const DOJO_API_BASE_URL = process.env.NEXT_PUBLIC_DOJO_API_URL
 
 export interface ApiResponse<T> {
   data?: T
@@ -25,17 +25,24 @@ class ApiClient {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl
-    this.token = localStorage.getItem('ctfd_token')
+    // Only access localStorage if we're in the browser
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('ctfd_token')
+    }
   }
 
   setToken(token: string) {
     this.token = token
-    localStorage.setItem('ctfd_token', token)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ctfd_token', token)
+    }
   }
 
   clearToken() {
     this.token = null
-    localStorage.removeItem('ctfd_token')
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('ctfd_token')
+    }
   }
 
   private async request<T>(
@@ -127,11 +134,13 @@ class ApiClient {
 export const ctfdApiClient = new ApiClient(CTFD_API_BASE_URL)
 export const dojoApiClient = new ApiClient(DOJO_API_BASE_URL)
 
-// Initialize tokens on both clients if available
-const storedToken = localStorage.getItem('ctfd_token')
-if (storedToken) {
-  ctfdApiClient.setToken(storedToken)
-  dojoApiClient.setToken(storedToken)
+// Initialize tokens on both clients if available (only in browser)
+if (typeof window !== 'undefined') {
+  const storedToken = localStorage.getItem('ctfd_token')
+  if (storedToken) {
+    ctfdApiClient.setToken(storedToken)
+    dojoApiClient.setToken(storedToken)
+  }
 }
 
 // Keep the default client pointing to dojo API for backwards compatibility

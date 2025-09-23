@@ -10,10 +10,16 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useTheme } from '@/components/theme/ThemeProvider'
 import { getAllThemes } from '@/themes'
+import { useState, useEffect } from 'react'
 
 export function ThemeSelector() {
   const { palette, mode, setPalette, toggleMode } = useTheme()
   const themes = getAllThemes()
+  const [isHydrated, setIsHydrated] = useState(false)
+
+  useEffect(() => {
+    setIsHydrated(true)
+  }, [])
 
   const getModeIcon = () => {
     switch (mode) {
@@ -45,7 +51,7 @@ export function ThemeSelector() {
           <Button variant="ghost" size="sm" className="h-9 gap-2">
             <Palette className="h-4 w-4" />
             <span className="hidden sm:inline">
-              {themes.find(t => t.id === palette)?.name}
+              {isHydrated ? themes.find(t => t.id === palette)?.name : ''}
             </span>
             <ChevronDown className="h-3 w-3" />
           </Button>

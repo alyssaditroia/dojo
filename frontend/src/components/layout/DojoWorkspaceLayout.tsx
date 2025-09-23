@@ -1,4 +1,6 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
+import { motion } from 'framer-motion'
+import { usePathname } from 'next/navigation'
 import { useWorkspace } from '@/hooks/useWorkspace'
 import { useStartChallenge } from '@/hooks/useDojo'
 import { FullScreenWorkspace } from './FullScreenWorkspace'
@@ -16,21 +18,6 @@ import { useTheme } from '@/components/theme/ThemeProvider'
 interface DojoWorkspaceLayoutProps {
   dojo: Dojo
   modules: DojoModule[]
-  activeChallenge: {
-    dojoId: string
-    moduleId: string
-    challengeId: string
-    name: string
-  }
-  activeResource?: {
-    id: string
-    name: string
-    type: 'markdown' | 'lecture' | 'header'
-    content?: string
-    video?: string
-    playlist?: string
-    slides?: string
-  }
   onChallengeStart: (dojoId: string, moduleId: string, challengeId: string) => void
   onChallengeClose: () => void
   onResourceSelect?: (resourceId: string | null) => void
@@ -39,12 +26,11 @@ interface DojoWorkspaceLayoutProps {
 export function DojoWorkspaceLayout({
   dojo,
   modules,
-  activeChallenge,
-  activeResource,
   onChallengeStart,
   onChallengeClose,
   onResourceSelect
 }: DojoWorkspaceLayoutProps) {
+  // ALL HOOKS MUST BE AT THE TOP - before any conditional returns
   // Use workspace state from Zustand store with individual selectors to avoid infinite loops
   const activeService = useUIStore(state => state.workspaceState.activeService)
   const preferredService = useUIStore(state => state.workspaceState.preferredService)
@@ -60,10 +46,44 @@ export function DojoWorkspaceLayout({
   const setSidebarWidth = useUIStore(state => state.setSidebarWidth)
   const setCommandPaletteOpen = useUIStore(state => state.setCommandPaletteOpen)
   const setWorkspaceHeaderHidden = useUIStore(state => state.setWorkspaceHeaderHidden)
+  const setActiveChallenge = useUIStore(state => state.setActiveChallenge)
 
   const [activeResourceTab, setActiveResourceTab] = useState<string>("video")
   const startChallengeMutation = useStartChallenge()
   const { palette } = useTheme()
+  const pathname = usePathname()
+
+  // Parse URL to determine active challenge/resource
+  const urlParts = pathname.split('/')
+  const workspaceIndex = urlParts.indexOf('workspace')
+  const type = urlParts[workspaceIndex + 1] // 'challenge' or 'resource'
+  const id = urlParts[workspaceIndex + 2] // challengeId or resourceId
+
+  const challengeId = type === 'challenge' ? id : undefined
+  const resourceId = type === 'resource' ? id : undefined
+  const isResourceMode = !!resourceId
+  const isChallenge = !!challengeId
+
+
+  // Get the current module (we only have one in workspace view)
+  const currentModule = modules[0]
+
+  // Find active challenge/resource
+  const challenge = currentModule?.challenges?.find(c => c.id === challengeId)
+  const resource = currentModule?.resources?.find(r => r.id === resourceId)
+
+  // Create activeChallenge object for consistency
+  const activeChallenge = isChallenge && challenge ? {
+    dojoId: dojo.id,
+    moduleId: currentModule.id,
+    challengeId: challenge.id,
+    name: challenge.name
+  } : isResourceMode && resource ? {
+    dojoId: dojo.id,
+    moduleId: currentModule.id,
+    challengeId: 'resource',
+    name: resource.name
+  } : undefined
 
   // Pass theme name for terminal and code services
   const serviceTheme = (activeService === 'terminal' || activeService === 'code') ? palette : undefined
@@ -74,14 +94,83 @@ export function DojoWorkspaceLayout({
   const { data: workspaceData } = useWorkspace(
     {
       service: activeService,
-      challenge: `${activeChallenge.dojoId}-${activeChallenge.moduleId}-${activeChallenge.challengeId}`,
+      challenge: activeChallenge ? `${activeChallenge.dojoId}-${activeChallenge.moduleId}-${activeChallenge.challengeId}` : '',
       theme: serviceTheme
     },
     !!activeChallenge
   )
 
-  // Get the current module (we only have one in workspace view)
-  const currentModule = modules[0]
+  // Set active challenge in UI store for widget
+  useEffect(() => {
+    if (activeChallenge) {
+      setActiveChallenge({
+        dojoId: activeChallenge.dojoId,
+        moduleId: activeChallenge.moduleId,
+        challengeId: activeChallenge.challengeId,
+        challengeName: activeChallenge.name,
+        dojoName: dojo.name,
+        moduleName: currentModule.name
+      })
+    }
+  }, [activeChallenge, dojo.name, currentModule?.name, setActiveChallenge])
+
+  // Handler function for challenge start
+  const handleChallengeStart = async (moduleId: string, challengeId: string) => {
+    // 1. Navigate immediately for instant UX
+    onChallengeStart(dojo.id, moduleId, challengeId)
+
+    // 2. Start challenge on server in background
+    try {
+      await startChallengeMutation.mutateAsync({
+        dojoId: dojo.id,
+        moduleId,
+        challengeId,
+        practice: false
+      })
+      console.log('Challenge started successfully')
+    } catch (error) {
+      console.error('Failed to start challenge:', error)
+    }
+  }
+
+  // Commands hook
+  const commands = useCommands({
+    activeChallenge,
+    modules: modules.map(m => ({ ...m, challenges: m.challenges.map(c => ({ ...c, id: c.id.toString() })) })),
+    activeService,
+    sidebarCollapsed,
+    isFullScreen,
+    headerHidden: workspaceHeaderHidden,
+    setActiveService,
+    setSidebarCollapsed,
+    setIsFullScreen: setFullScreen,
+    setHeaderHidden: setWorkspaceHeaderHidden,
+    onChallengeStart: handleChallengeStart,
+    onChallengeClose
+  })
+
+  // Setup hotkeys
+  useHotkeys({
+    [hotkey.ctrlShift('p')]: () => setCommandPaletteOpen(!commandPaletteOpen),
+    [hotkey.cmdShift('p')]: () => setCommandPaletteOpen(!commandPaletteOpen),
+    [hotkey.ctrl('b')]: () => setSidebarCollapsed(!sidebarCollapsed),
+    [hotkey.cmd('b')]: () => setSidebarCollapsed(!sidebarCollapsed),
+    [hotkey.ctrl('h')]: () => setWorkspaceHeaderHidden(!workspaceHeaderHidden),
+    [hotkey.cmd('h')]: () => setWorkspaceHeaderHidden(!workspaceHeaderHidden),
+    ['f11']: () => setFullScreen(!isFullScreen),
+    ['escape']: () => isFullScreen && setFullScreen(false),
+    [hotkey.ctrl('1')]: () => workspaceData?.active && setActiveService('terminal'),
+    [hotkey.ctrl('2')]: () => workspaceData?.active && setActiveService('code'),
+    [hotkey.ctrl('3')]: () => workspaceData?.active && setActiveService('desktop'),
+  }, [isFullScreen, workspaceData?.active])
+
+  // Auto-expand module and use preferred service
+  useEffect(() => {
+    if (activeChallenge) {
+      setActiveService(preferredService)
+      // Don't auto-hide workspace header anymore since we want it visible by default
+    }
+  }, [activeChallenge.challengeId, preferredService, setActiveService])
 
   // Cached Canvas for text measurement (create once, reuse)
   const getTextMeasureCanvas = (() => {
@@ -181,62 +270,6 @@ export function DojoWorkspaceLayout({
 
   const optimalSidebarWidth = calculateOptimalSidebarWidth()
 
-  const handleChallengeStart = async (moduleId: string, challengeId: string) => {
-    // 1. Navigate immediately for instant UX
-    onChallengeStart(dojo.id, moduleId, challengeId)
-
-    // 2. Start challenge on server in background
-    try {
-      await startChallengeMutation.mutateAsync({
-        dojoId: dojo.id,
-        moduleId,
-        challengeId,
-        practice: false
-      })
-      console.log('Challenge started successfully')
-    } catch (error) {
-      console.error('Failed to start challenge:', error)
-    }
-  }
-
-
-  const commands = useCommands({
-    activeChallenge,
-    modules: modules.map(m => ({ ...m, challenges: m.challenges.map(c => ({ ...c, id: c.id.toString() })) })),
-    activeService,
-    sidebarCollapsed,
-    isFullScreen,
-    headerHidden: workspaceHeaderHidden,
-    setActiveService,
-    setSidebarCollapsed,
-    setIsFullScreen: setFullScreen,
-    setHeaderHidden: setWorkspaceHeaderHidden,
-    onChallengeStart: handleChallengeStart,
-    onChallengeClose
-  })
-
-  // Setup hotkeys
-  useHotkeys({
-    [hotkey.ctrlShift('p')]: () => setCommandPaletteOpen(!commandPaletteOpen),
-    [hotkey.cmdShift('p')]: () => setCommandPaletteOpen(!commandPaletteOpen),
-    [hotkey.ctrl('b')]: () => setSidebarCollapsed(!sidebarCollapsed),
-    [hotkey.cmd('b')]: () => setSidebarCollapsed(!sidebarCollapsed),
-    [hotkey.ctrl('h')]: () => setWorkspaceHeaderHidden(!workspaceHeaderHidden),
-    [hotkey.cmd('h')]: () => setWorkspaceHeaderHidden(!workspaceHeaderHidden),
-    ['f11']: () => setFullScreen(!isFullScreen),
-    ['escape']: () => isFullScreen && setFullScreen(false),
-    [hotkey.ctrl('1')]: () => workspaceData?.active && setActiveService('terminal'),
-    [hotkey.ctrl('2')]: () => workspaceData?.active && setActiveService('code'),
-    [hotkey.ctrl('3')]: () => workspaceData?.active && setActiveService('desktop'),
-  }, [isFullScreen, workspaceData?.active])
-
-  // Auto-expand module and use preferred service
-  useEffect(() => {
-    if (activeChallenge) {
-      setActiveService(preferredService)
-      // Don't auto-hide workspace header anymore since we want it visible by default
-    }
-  }, [activeChallenge.challengeId, preferredService, setActiveService])
 
   // Full screen mode
   if (isFullScreen) {
@@ -269,7 +302,7 @@ export function DojoWorkspaceLayout({
             module={currentModule ? { ...currentModule, challenges: currentModule.challenges.map(c => ({ ...c, id: c.id.toString() })) } : { id: '', name: 'Module', challenges: [] }}
             dojoName={dojo.name}
             activeChallenge={activeChallenge}
-            activeResource={activeResource?.id}
+            activeResource={resource?.id}
             sidebarCollapsed={sidebarCollapsed}
             isResizing={false}
             headerHidden={workspaceHeaderHidden}
@@ -290,7 +323,15 @@ export function DojoWorkspaceLayout({
 
         {/* Main Workspace Panel */}
         <ResizablePanel defaultSize={sidebarCollapsed ? 97 : (100 - optimalSidebarWidth)}>
-          <div className="flex flex-col h-full bg-background">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{
+              duration: 0.3,
+              ease: [0.25, 0.46, 0.45, 0.94]
+            }}
+            className="flex flex-col h-full bg-background"
+          >
             {/* Unified animated header for both challenges and resources */}
             <AnimatedWorkspaceHeader
               activeChallenge={activeChallenge}
@@ -298,7 +339,7 @@ export function DojoWorkspaceLayout({
               moduleName={currentModule?.name || 'Module'}
               activeService={activeService}
               workspaceActive={workspaceData?.active || false}
-              activeResource={activeResource}
+              activeResource={resource}
               activeResourceTab={activeResourceTab}
               onResourceTabChange={setActiveResourceTab}
               isFullScreen={isFullScreen}
@@ -317,7 +358,7 @@ export function DojoWorkspaceLayout({
               workspaceActive={workspaceData?.active || false}
               workspaceData={workspaceData}
               activeService={activeService}
-              activeResource={activeResource}
+              activeResource={resource}
               activeResourceTab={activeResourceTab}
               activeChallenge={activeChallenge}
               dojoName={dojo.name}
@@ -332,7 +373,7 @@ export function DojoWorkspaceLayout({
               onServiceChange={setActiveService}
               onResourceTabChange={setActiveResourceTab}
             />
-          </div>
+          </motion.div>
         </ResizablePanel>
       </ResizablePanelGroup>
 

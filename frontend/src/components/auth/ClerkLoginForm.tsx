@@ -1,5 +1,8 @@
+'use client'
+
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useAuthStore } from '@/stores'
 import { type LoginCredentials } from '@/services/auth'
 import { Button } from '@/components/ui/button'
@@ -12,7 +15,7 @@ import { Logo } from '@/components/ui/Logo'
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react'
 
 export function ClerkLoginForm() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const { login, loginLoading, authError, clearError } = useAuthStore()
   const [formData, setFormData] = useState<LoginCredentials>({
     name: '',
@@ -27,7 +30,7 @@ export function ClerkLoginForm() {
 
     try {
       await login(formData)
-      navigate('/')
+      router.push('/')
     } catch (err) {
       // Error is handled by the store
     }
@@ -113,7 +116,7 @@ export function ClerkLoginForm() {
               {/* Forgot Password Link */}
               <div className="flex justify-end">
                 <Link
-                  to="/forgot-password"
+                  href="/forgot-password"
                   className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   Forgot your password?
@@ -148,7 +151,7 @@ export function ClerkLoginForm() {
               <div className="text-center">
                 <span className="text-sm text-muted-foreground">Don't have an account? </span>
                 <Link
-                  to="/register"
+                  href="/register"
                   className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   Sign up
@@ -161,7 +164,7 @@ export function ClerkLoginForm() {
         {/* Back to Home */}
         <div className="text-center">
           <Link
-            to="/"
+            href="/"
             className="inline-flex items-center space-x-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />

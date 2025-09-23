@@ -1,5 +1,8 @@
+'use client'
+
 import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { authService, type RegisterData } from '@/services/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,7 +20,7 @@ interface PasswordRequirement {
 }
 
 export function ClerkSignupForm() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const [formData, setFormData] = useState<RegisterData>({
     name: '',
     email: '',
@@ -69,7 +72,7 @@ export function ClerkSignupForm() {
       const response = await authService.register(cleanFormData)
 
       if (response.success) {
-        navigate('/')
+        router.push('/')
       } else {
         setError(response.errors?.join(', ') || 'Registration failed')
       }
@@ -252,11 +255,11 @@ export function ClerkSignupForm() {
               {/* Terms */}
               <p className="text-xs text-center text-muted-foreground leading-relaxed">
                 By clicking "Create account", you agree to our{' '}
-                <Link to="/terms" className="text-primary hover:text-primary/80">
+                <Link href="/terms" className="text-primary hover:text-primary/80">
                   Terms of Service
                 </Link>{' '}
                 and{' '}
-                <Link to="/privacy" className="text-primary hover:text-primary/80">
+                <Link href="/privacy" className="text-primary hover:text-primary/80">
                   Privacy Policy
                 </Link>
                 .
@@ -274,7 +277,7 @@ export function ClerkSignupForm() {
               <div className="text-center">
                 <span className="text-sm text-muted-foreground">Already have an account? </span>
                 <Link
-                  to="/login"
+                  href="/login"
                   className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   Sign in
@@ -287,7 +290,7 @@ export function ClerkSignupForm() {
         {/* Back to Home */}
         <div className="text-center">
           <Link
-            to="/"
+            href="/"
             className="inline-flex items-center space-x-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />

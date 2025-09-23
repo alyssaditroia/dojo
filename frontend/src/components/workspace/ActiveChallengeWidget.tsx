@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from 'react'
-import { useLocation, useNavigate } from 'react-router-dom'
+import { usePathname, useRouter } from 'next/navigation'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -32,14 +34,14 @@ export function ActiveChallengeWidget({
   activeChallenge,
   onKillChallenge
 }: ActiveChallengeWidgetProps) {
-  const location = useLocation()
-  const navigate = useNavigate()
+  const pathname = usePathname()
+  const router = useRouter()
   const [isExpanded, setIsExpanded] = useState(false)
   const [isKilling, setIsKilling] = useState(false)
 
   console.log('ActiveChallengeWidget render:', {
     activeChallenge,
-    currentPath: location.pathname
+    currentPath: pathname
   })
 
   // Don't show if no active challenge
@@ -49,14 +51,14 @@ export function ActiveChallengeWidget({
   }
 
   // Don't show if we're already on the challenge page
-  const challengePath = `/dojo/${activeChallenge.dojoId}/module/${activeChallenge.moduleId}/challenge/${activeChallenge.challengeId}`
+  const challengePath = `/dojo/${activeChallenge.dojoId}/module/${activeChallenge.moduleId}/workspace/challenge/${activeChallenge.challengeId}`
   console.log('Challenge path comparison:', {
     challengePath,
-    currentPath: location.pathname,
-    matches: location.pathname === challengePath
+    currentPath: pathname,
+    matches: pathname === challengePath
   })
 
-  if (location.pathname === challengePath) {
+  if (pathname === challengePath) {
     console.log('On challenge page, hiding widget')
     return null
   }
@@ -64,7 +66,7 @@ export function ActiveChallengeWidget({
   console.log('Showing ActiveChallengeWidget')
 
   const handleGoToChallenge = () => {
-    navigate(challengePath)
+    router.push(challengePath)
   }
 
   const handleKillChallenge = async () => {

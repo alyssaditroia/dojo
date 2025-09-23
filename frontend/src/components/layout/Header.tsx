@@ -1,4 +1,7 @@
-import { Link, useLocation, useParams } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
+import { usePathname, useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import {
@@ -28,8 +31,9 @@ export function Header() {
   const isHeaderHidden = useUIStore(state => state.isHeaderHidden)
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const location = useLocation()
-  const { dojoId } = useParams()
+  const pathname = usePathname()
+  const params = useParams()
+  const dojoId = params?.dojoId as string
   const [scrolled, setScrolled] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [lastScrollY, setLastScrollY] = useState(0)
@@ -67,14 +71,14 @@ export function Header() {
 
   // Smart navigation items based on context
   const navItems = [
-    { name: 'Dojos', href: '/', icon: BookOpen, active: location.pathname === '/' },
-    { name: 'Leaderboard', href: '/leaderboard', icon: Trophy, active: location.pathname === '/leaderboard' },
-    { name: 'Community', href: '/community', icon: Users, active: location.pathname === '/community' },
+    { name: 'Dojos', href: '/', icon: BookOpen, active: pathname === '/' },
+    { name: 'Leaderboard', href: '/leaderboard', icon: Trophy, active: pathname === '/leaderboard' },
+    { name: 'Community', href: '/community', icon: Users, active: pathname === '/community' },
   ]
 
   // Generate breadcrumbs based on current path
   const breadcrumbs = []
-  if (location.pathname !== '/') {
+  if (pathname !== '/') {
     breadcrumbs.push({ name: 'Home', href: '/' })
 
     if (currentDojo) {
@@ -102,7 +106,7 @@ export function Header() {
               {navItems.map((item) => (
                 <Link
                   key={item.name}
-                  to={item.href}
+                  href={item.href}
                   className={cn(
                     "flex items-center space-x-1.5 px-3 py-2 text-sm transition-colors",
                     item.active
@@ -189,12 +193,12 @@ export function Header() {
             ) : (
               <div className="flex items-center space-x-2">
                 <Button variant="ghost" size="sm" asChild>
-                  <Link to="/login" className="text-sm">
+                  <Link href="/login" className="text-sm">
                     Login
                   </Link>
                 </Button>
                 <Button size="sm" asChild>
-                  <Link to="/register" className="text-sm">
+                  <Link href="/register" className="text-sm">
                     Register
                   </Link>
                 </Button>
@@ -227,7 +231,7 @@ export function Header() {
                     <div key={crumb.href} className="flex items-center">
                       {index > 0 && <ChevronRight className="h-3 w-3 mx-1 text-muted-foreground" />}
                       <Link
-                        to={crumb.href}
+                        href={crumb.href}
                         className="flex items-center space-x-1 text-muted-foreground"
                         onClick={() => setMobileMenuOpen(false)}
                       >
@@ -244,7 +248,7 @@ export function Header() {
               {navItems.map((item) => (
                 <Link
                   key={item.name}
-                  to={item.href}
+                  href={item.href}
                   className={cn(
                     "flex items-center space-x-2 px-3 py-2 text-sm transition-colors",
                     item.active
@@ -298,12 +302,12 @@ export function Header() {
               ) : (
                 <div className="space-y-2">
                   <Button variant="ghost" size="sm" className="w-full justify-start" asChild>
-                    <Link to="/login" onClick={() => setMobileMenuOpen(false)}>
+                    <Link href="/login" onClick={() => setMobileMenuOpen(false)}>
                       Login
                     </Link>
                   </Button>
                   <Button size="sm" className="w-full" asChild>
-                    <Link to="/register" onClick={() => setMobileMenuOpen(false)}>
+                    <Link href="/register" onClick={() => setMobileMenuOpen(false)}>
                       Register
                     </Link>
                   </Button>

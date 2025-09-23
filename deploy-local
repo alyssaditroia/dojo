@@ -48,7 +48,7 @@ if [ "$PROD_MODE" = true ]; then
     export CORS_ORIGINS="https://app.dlock.tech"
 else
     export DOJO_HOST="localhost"
-    export CORS_ORIGINS="http://localhost:5173"
+    export CORS_ORIGINS="http://localhost:3000"
 fi
 
 docker build -t pwncollege/dojo .

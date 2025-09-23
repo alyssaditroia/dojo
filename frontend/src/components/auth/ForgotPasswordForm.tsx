@@ -1,5 +1,7 @@
+'use client'
+
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { authService } from '@/services/auth'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -74,7 +76,7 @@ export function ForgotPasswordForm() {
                   Try another email
                 </Button>
 
-                <Link to="/login">
+                <Link href="/login">
                   <Button className="w-full">
                     Back to sign in
                   </Button>
@@ -93,7 +95,7 @@ export function ForgotPasswordForm() {
           {/* Back to Home */}
           <div className="text-center">
             <Link
-              to="/"
+              href="/"
               className="inline-flex items-center space-x-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               <ArrowLeft className="h-4 w-4" />
@@ -170,7 +172,7 @@ export function ForgotPasswordForm() {
               {/* Back to Login */}
               <div className="text-center">
                 <Link
-                  to="/login"
+                  href="/login"
                   className="text-sm font-medium text-primary hover:text-primary/80 transition-colors"
                 >
                   ← Back to sign in
@@ -191,7 +193,7 @@ export function ForgotPasswordForm() {
         {/* Back to Home */}
         <div className="text-center">
           <Link
-            to="/"
+            href="/"
             className="inline-flex items-center space-x-1 text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="h-4 w-4" />

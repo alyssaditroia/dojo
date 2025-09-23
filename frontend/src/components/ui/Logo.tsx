@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 interface LogoProps {
@@ -16,7 +16,7 @@ export function Logo({
 }: LogoProps) {
   return (
     <Link
-      to="/"
+      href="/"
       className={cn(
         "flex items-center space-x-2 group transition-all duration-200 hover:opacity-80",
         linkClassName

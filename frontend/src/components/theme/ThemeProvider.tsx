@@ -21,14 +21,20 @@ export function ThemeProvider({
   storageKey?: string
 }) {
   const [palette, setPalette] = useState<string>(() => {
-    const saved = localStorage.getItem('theme-palette')
-    const defaultTheme = getDefaultTheme()
-    return (saved && themeExists(saved)) ? saved : defaultTheme.id
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('theme-palette')
+      const defaultTheme = getDefaultTheme()
+      return (saved && themeExists(saved)) ? saved : defaultTheme.id
+    }
+    return getDefaultTheme().id
   })
 
   const [mode, setMode] = useState<ThemeMode>(() => {
-    const saved = localStorage.getItem(storageKey)
-    return (saved as ThemeMode) || defaultTheme
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(storageKey)
+      return (saved as ThemeMode) || defaultTheme
+    }
+    return defaultTheme
   })
 
   const toggleMode = () => {
@@ -42,11 +48,15 @@ export function ThemeProvider({
   }
 
   useEffect(() => {
-    localStorage.setItem('theme-palette', palette)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('theme-palette', palette)
+    }
   }, [palette])
 
   useEffect(() => {
-    localStorage.setItem(storageKey, mode)
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(storageKey, mode)
+    }
   }, [mode, storageKey])
 
   useEffect(() => {

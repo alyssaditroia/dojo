@@ -20,7 +20,7 @@ export function WorkspaceService({ iframeSrc, activeService, onReady }: Workspac
 
   useEffect(() => {
     // Construct full URL
-    const baseUrl = import.meta.env.VITE_DOJO_BASE_URL
+    const baseUrl = process.env.NEXT_PUBLIC_DOJO_BASE_URL
     const fullUrl = iframeSrc.startsWith('/') ? `${baseUrl}${iframeSrc}` : iframeSrc
 
     // Check if iframe already has the correct URL - if so, don't reload

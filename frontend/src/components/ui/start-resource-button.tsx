@@ -1,5 +1,7 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
+'use client'
+
+import React, { startTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Play, BookOpen, Video, Loader2 } from 'lucide-react'
 import { useUIStore, useDojoStore } from '@/stores'
@@ -26,7 +28,7 @@ export function StartResourceButton({
   children,
   onClick
 }: StartResourceButtonProps) {
-  const navigate = useNavigate()
+  const router = useRouter()
   const setActiveResource = useUIStore(state => state.setActiveResource)
   const dojos = useDojoStore(state => state.dojos)
   const modulesMap = useDojoStore(state => state.modules)
@@ -39,15 +41,13 @@ export function StartResourceButton({
       onClick(e)
     }
 
-    // 1. Navigate immediately for instant UX
-    navigate(`/dojo/${dojoId}/module/${moduleId}/resource/${resourceId}`)
-
-    // 2. Set active resource state immediately (optimistic update with proper names)
+    // Get data for optimistic update
     const dojo = dojos.find(d => d.id === dojoId)
     const modules = modulesMap[dojoId] || []
     const module = modules.find(m => m.id === moduleId)
     const resource = module?.resources?.find(r => r.id === resourceId)
 
+    // 1. Set active resource state immediately (optimistic update with proper names)
     if (setActiveResource) {
       setActiveResource({
         dojoId,
@@ -59,6 +59,11 @@ export function StartResourceButton({
         resourceType: resource?.type || 'markdown'
       })
     }
+
+    // 2. Navigate immediately using startTransition for instant feel
+    startTransition(() => {
+      router.push(`/dojo/${dojoId}/module/${moduleId}/workspace/resource/${resourceId}`)
+    })
   }
 
   // Determine icon based on resource type

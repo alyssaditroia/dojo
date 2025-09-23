@@ -1,5 +1,7 @@
-import React from 'react'
-import { useNavigate } from 'react-router-dom'
+'use client'
+
+import React, { startTransition } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Play, Loader2 } from 'lucide-react'
 import { useStartChallenge } from '@/hooks/useDojo'
@@ -31,7 +33,7 @@ export function StartChallengeButton({
   children,
   onClick
 }: StartChallengeButtonProps) {
-  const navigate = useNavigate()
+  const router = useRouter()
   const startChallengeMutation = useStartChallenge()
   const setActiveChallenge = useUIStore(state => state.setActiveChallenge)
   const dojos = useDojoStore(state => state.dojos)
@@ -45,18 +47,13 @@ export function StartChallengeButton({
       onClick(e)
     }
 
-    // Check if we had an active challenge before starting (for delay logic)
-    const hadActiveChallenge = !!useUIStore.getState().activeChallenge
-
-    // 1. Navigate immediately for instant UX
-    navigate(`/dojo/${dojoId}/module/${moduleId}/challenge/${challengeId}`)
-
-    // 2. Set active challenge state immediately (optimistic update with proper names)
+    // Get data for optimistic update
     const dojo = dojos.find(d => d.id === dojoId)
     const modules = modulesMap[dojoId] || []
     const module = modules.find(m => m.id === moduleId)
     const challenge = module?.challenges?.find(c => c.id === challengeId)
 
+    // 1. Update state immediately for instant UI feedback
     setActiveChallenge({
       dojoId,
       moduleId,
@@ -67,6 +64,11 @@ export function StartChallengeButton({
       isStarting: true
     })
 
+    // 2. Navigate immediately using startTransition for instant feel
+    startTransition(() => {
+      router.push(`/dojo/${dojoId}/module/${moduleId}/workspace/challenge/${challengeId}`)
+    })
+
     // 3. Start the challenge on the server in background
     // The workspace will show loading until this completes
     startChallengeMutation.mutateAsync({
@@ -74,15 +76,8 @@ export function StartChallengeButton({
       moduleId,
       challengeId,
       practice
-    }).then(async () => {
+    }).then(() => {
       console.log('Challenge started successfully')
-
-      // If we didn't have an active challenge before, wait 500ms for backend setup
-      if (!hadActiveChallenge) {
-        console.log('Waiting 500ms for workspace setup...')
-        await new Promise(resolve => setTimeout(resolve, 500))
-      }
-
       // Update the active challenge to remove isStarting flag
       setActiveChallenge({
         dojoId,

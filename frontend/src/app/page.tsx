@@ -1,15 +1,17 @@
-import { Link } from 'react-router-dom'
+'use client'
+
+import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useDojoStore } from '@/stores'
-import { Markdown } from '@/components/ui/markdown'
 import { Loader2, AlertCircle, Star, Users, Trophy, BookOpen, Zap } from 'lucide-react'
+import { Markdown } from '@/components/ui/markdown'
 import { motion } from 'framer-motion'
 import { useMemo } from 'react'
 import ninjaImage from '@/assets/ninja.png'
 
-export default function DojoList() {
+export default function HomePage() {
   const dojos = useDojoStore(state => state.dojos)
   const loadingDojos = useDojoStore(state => state.loadingDojos)
   const dojoError = useDojoStore(state => state.dojoError)
@@ -125,8 +127,14 @@ export default function DojoList() {
     return <span className="text-3xl">🎯</span>
   }
 
-  const DojoCard = ({ dojo, progress = null }: { dojo: any, progress?: number | null }) => (
-    <Link to={`/dojo/${dojo.id}`} className="group">
+  const DojoCard = ({ dojo, progress = null }: { dojo: any, progress?: number | null }) => {
+    // Don't render if dojo.id is missing
+    if (!dojo.id) {
+      return null
+    }
+
+    return (
+    <Link href={`/dojo/${dojo.id}`} className="group">
       <Card className="relative h-full border border-border hover:border-muted-foreground/20 hover:shadow-md transition-all duration-200 group-hover:translate-y-[-2px]">
         {/* Icon positioned top-right */}
         <div className="absolute top-4 right-4 flex items-center justify-center">
@@ -193,7 +201,8 @@ export default function DojoList() {
         </CardContent>
       </Card>
     </Link>
-  )
+    )
+  }
 
   const SectionHeader = ({ icon, title, subtitle, description }: {
     icon: React.ReactNode,
@@ -219,104 +228,104 @@ export default function DojoList() {
       exit={{ opacity: 0, y: -20 }}
       transition={{ duration: 0.2, ease: [0.25, 0.46, 0.45, 0.94] }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Hero Section */}
-        <div className="py-16 sm:py-20 lg:py-24">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-            <div className="max-w-4xl">
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
-                Security Dojos
-              </h1>
-              <p className="text-muted-foreground text-lg sm:text-xl lg:text-2xl leading-relaxed mb-8 max-w-3xl">
-                The material is split into a number of "dojos", with each dojo typically covering a high-level topic.
-                The material is designed to be tackled in order.
-              </p>
-              <div className="text-sm sm:text-base text-muted-foreground">
-                {dojos.length} {dojos.length === 1 ? 'dojo' : 'dojos'} available
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Hero Section */}
+          <div className="py-16 sm:py-20 lg:py-24">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+              <div className="max-w-4xl">
+                <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold mb-6 bg-gradient-to-r from-foreground to-muted-foreground bg-clip-text text-transparent">
+                  Security Dojos
+                </h1>
+                <p className="text-muted-foreground text-lg sm:text-xl lg:text-2xl leading-relaxed mb-8 max-w-3xl">
+                  The material is split into a number of "dojos", with each dojo typically covering a high-level topic.
+                  The material is designed to be tackled in order.
+                </p>
+                <div className="text-sm sm:text-base text-muted-foreground">
+                  {dojos.length} {dojos.length === 1 ? 'dojo' : 'dojos'} available
+                </div>
+              </div>
+              <div className="flex justify-center lg:justify-end">
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+                  className="relative"
+                >
+                  <img
+                    src={ninjaImage}
+                    alt="Security Ninja"
+                    className="w-[400px] h-[400px] sm:w-80 sm:h-80 lg:w-[600px] lg:h-[600px] drop-shadow-2xl"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-full blur-3xl -z-10" />
+                </motion.div>
               </div>
             </div>
-            <div className="flex justify-center lg:justify-end">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.8 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
-                className="relative"
-              >
-                <img
-                  src={ninjaImage}
-                  alt="Security Ninja"
-                  className="w-[400px] h-[400px] sm:w-80 sm:h-80 lg:w-[600px] lg:h-[600px] drop-shadow-2xl"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-full blur-3xl -z-10" />
-              </motion.div>
-            </div>
           </div>
-        </div>
 
-        {/* Getting Started Section */}
-        {gettingStartedDojos.length > 0 && (
-          <div className="pb-16 sm:pb-20">
-            <SectionHeader
-              icon={<Zap className="h-8 w-8 text-primary" />}
-              title="Getting Started"
-              subtitle="Learn the Basics!"
-              description="These first few dojos are designed to help you Get Started with the platform. Start here before venturing onwards!"
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {gettingStartedDojos.map((dojo) => (
-                <DojoCard key={dojo.id} dojo={dojo} progress={0} />
-              ))}
+          {/* Getting Started Section */}
+          {gettingStartedDojos.length > 0 && (
+            <div className="pb-16 sm:pb-20">
+              <SectionHeader
+                icon={<Zap className="h-8 w-8 text-primary" />}
+                title="Getting Started"
+                subtitle="Learn the Basics!"
+                description="These first few dojos are designed to help you Get Started with the platform. Start here before venturing onwards!"
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {gettingStartedDojos.map((dojo) => (
+                  <DojoCard key={dojo.id} dojo={dojo} progress={0} />
+                ))}
+              </div>
+              <div className="mt-8 p-4 bg-muted/30 rounded-lg">
+                <p className="text-muted-foreground font-medium">
+                  After completing the dojos above, dive into the Core Material below!
+                </p>
+              </div>
             </div>
-            <div className="mt-8 p-4 bg-muted/30 rounded-lg">
-              <p className="text-muted-foreground font-medium">
-                After completing the dojos above, dive into the Core Material below!
-              </p>
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Core Material Section */}
-        {coreDojos.length > 0 && (
-          <div className="pb-16 sm:pb-20">
-            <SectionHeader
-              icon={<Trophy className="h-8 w-8 text-primary" />}
-              title="Core Material"
-              subtitle="Earn Your Belts!"
-              description="These dojos form the official curriculum, taking you on a curated journey through the art of hacking. As you progress and build your skills, like in a martial art, you will earn belts for completing dojo after dojo."
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {coreDojos.map((dojo) => (
-                <DojoCard key={dojo.id} dojo={dojo} />
-              ))}
+          {/* Core Material Section */}
+          {coreDojos.length > 0 && (
+            <div className="pb-16 sm:pb-20">
+              <SectionHeader
+                icon={<Trophy className="h-8 w-8 text-primary" />}
+                title="Core Material"
+                subtitle="Earn Your Belts!"
+                description="These dojos form the official curriculum, taking you on a curated journey through the art of hacking. As you progress and build your skills, like in a martial art, you will earn belts for completing dojo after dojo."
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {coreDojos.map((dojo) => (
+                  <DojoCard key={dojo.id} dojo={dojo} />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Community Material Section */}
-        {communityDojos.length > 0 && (
-          <div className="pb-16 sm:pb-20">
-            <SectionHeader
-              icon={<Users className="h-8 w-8 text-primary" />}
-              title="Community Material"
-              subtitle="Earn Badges!"
-              description="No matter how much material we create, there is always more to learn! This section contains additional dojos created by the community. Some are designed to be tackled after you complete the dojos above, whereas others are open to anyone interested in more specialized topics."
-            />
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {communityDojos.map((dojo) => (
-                <DojoCard key={dojo.id} dojo={dojo} />
-              ))}
+          {/* Community Material Section */}
+          {communityDojos.length > 0 && (
+            <div className="pb-16 sm:pb-20">
+              <SectionHeader
+                icon={<Users className="h-8 w-8 text-primary" />}
+                title="Community Material"
+                subtitle="Earn Badges!"
+                description="No matter how much material we create, there is always more to learn! This section contains additional dojos created by the community. Some are designed to be tackled after you complete the dojos above, whereas others are open to anyone interested in more specialized topics."
+              />
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {communityDojos.map((dojo) => (
+                  <DojoCard key={dojo.id} dojo={dojo} />
+                ))}
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* No Dojos State */}
-        {dojos.length === 0 && (
-          <div className="py-16">
-            <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
-            <h3 className="text-xl font-semibold mb-2">No dojos available yet</h3>
-            <p className="text-muted-foreground">Check back soon for new challenges!</p>
-          </div>
-        )}
+          {/* No Dojos State */}
+          {dojos.length === 0 && (
+            <div className="py-16">
+              <BookOpen className="h-16 w-16 text-muted-foreground mb-4" />
+              <h3 className="text-xl font-semibold mb-2">No dojos available yet</h3>
+              <p className="text-muted-foreground">Check back soon for new challenges!</p>
+            </div>
+          )}
       </div>
     </motion.div>
   )
