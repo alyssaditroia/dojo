@@ -43,6 +43,7 @@ def view_workspace():
 def view_workspace_service(service):
     return render_template("workspace_service.html", iframe_name="workspace", service=service)
 
+
 @workspace.route("/workspace/<service>/", websocket=True)
 @workspace.route("/workspace/<service>/<path:service_path>", websocket=True)
 @workspace.route("/workspace/<service>/", methods=["GET", "HEAD", "POST", "PUT", "DELETE", "CONNECT", "OPTIONS", "TRACE", "PATCH"])

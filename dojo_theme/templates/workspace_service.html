@@ -32,26 +32,45 @@
         justify-content: center;
         text-align: center;
     }
+
+    .workspace-layout {
+        flex: 1;
+        display: flex;
+    }
+
+    .workspace-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        min-width: 0;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
-
-<iframe id="workspace_iframe" name="{{ iframe_name }}" src="" class="d-none"></iframe>
-<h1 class="inactive">Loading...</h1>
-
+<div class="challenge-workspace">
+  <div class="workspace-layout">
+    <div class="workspace-content">
+      <iframe id="workspace_iframe" name="{{ iframe_name }}" src="" class="d-none"></iframe>
+      <h1 class="inactive">Loading...</h1>
+    </div>
+    {% include "components/challenge_panel.html" %}
+  </div>
+  {% include "components/actionbar.html" %}
+</div>
 {% endblock %}
 
 {% block scripts %}
 {{ super() }}
+<script defer src="{{ url_for('views.themes', path='js/dojo/actionbar.js') }}"></script>
 
 <script>
     let response =  fetch("/pwncollege_api/v1/workspace?service={{ service }}").then(response => response.json()).then(data => {
-        console.log(data);
         if (data.active) {
-            document.getElementById("workspace_iframe").src = data.iframe_src;
+            const iframe = document.getElementById("workspace_iframe");
+            iframe.src = data.iframe_src;
             document.querySelector("h1").classList.add("d-none");
-            document.getElementById("workspace_iframe").classList.remove("d-none");
+            iframe.classList.remove("d-none");
         }
         else {
             document.querySelector("h1").innerText = "No active challenge session; start a challenge!";

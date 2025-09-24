@@ -182,10 +182,12 @@
           {% set icon = "fas fa-flag" %}
         {% endif %}
 
-        {% call(header) accordion_item("module-content", loop.index, lock_challenge, challenge_index=ns.challenge_count) %}
+        {% call(header) accordion_item("module-content", loop.index, lock_challenge, challenge_index=ns.challenge_count, challenge_id=challenge.challenge_id) %}
           {% if header %}
-            <h4 class="accordion-item-name challenge-name {{ active }}" data-challenge-index="{{ ns.challenge_count }}" data-challenge-name="{{ challenge.name or challenge.id }}" id="challenges-header-{{ ns.challenge_count }}">
+            <h4 class="accordion-item-name challenge-name {{ active }} {{ solved }}" data-challenge-index="{{ ns.challenge_count }}" data-challenge-name="{{ challenge.name or challenge.id }}" data-challenge-id="{{ challenge.challenge_id }}" id="challenges-header-{{ ns.challenge_count }}">
+                {% if solved == "challenge-unsolved" %}
                 <i class="challenge-icon pr-3 {{ icon }} {{ solved }} "></i>
+                {% endif %}
                 {% if lock_challenge %}
                 <div class="challenge-text-wrapper">
                   <span class="challenge-name-text">{{ challenge.name or challenge.id }}</span>
@@ -306,4 +308,72 @@
 <script defer src="{{ url_for('views.themes', path='js/dojo/actionbar.js') }}"></script>
 <script defer src="{{ url_for('views.themes', path='js/dojo/challenges.js') }}"></script>
 <script defer onload="loadScoreboard(30, 1);" src="{{ url_for('views.themes', path='js/dojo/scoreboard.js') }}"></script>
+<script defer src="{{ url_for('views.themes', path='js/dojo/actionbar.js') }}"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Check for challenge ID in URL hash or path and scroll to it
+    function scrollToChallengeFromUrl() {
+        let challengeId = null;
+
+        // Check hash fragment for challenge ID (e.g., #challenge-123)
+        if (window.location.hash) {
+            const hashMatch = window.location.hash.match(/^#challenge-(\d+)$/);
+            if (hashMatch) {
+                challengeId = hashMatch[1];
+            }
+        }
+
+        // Check URL path for challenge ID patterns
+        if (!challengeId) {
+            const pathMatch = window.location.pathname.match(/challenge[_-]?(\d+)/i);
+            if (pathMatch) {
+                challengeId = pathMatch[1];
+            }
+        }
+
+        if (challengeId) {
+            console.log('Found challenge ID in URL:', challengeId);
+
+            setTimeout(() => {
+                const el = document.getElementById('challenge-' + challengeId) ||
+                          document.querySelector('[data-challenge-id="' + challengeId + '"]');
+
+                if (el) {
+                    const challengeIndex = el.querySelector('.accordion-item-name')?.getAttribute('data-challenge-index');
+
+                    const scrollToElement = () => {
+                        const rect = el.getBoundingClientRect();
+                        window.scrollTo({
+                            top: window.scrollY + rect.top - 100,
+                            behavior: 'smooth'
+                        });
+                        console.log('Auto-scrolled to challenge:', challengeId);
+                    };
+
+                    if (challengeIndex) {
+                        const button = document.getElementById('challenges-header-button-' + challengeIndex);
+                        const body = document.getElementById('challenges-body-' + challengeIndex);
+
+                        if (button && body && !body.classList.contains('show')) {
+                            console.log('Auto-expanding accordion for challenge', challengeIndex);
+                            button.click();
+                            setTimeout(scrollToElement, 400);
+                        } else {
+                            scrollToElement();
+                        }
+                    } else {
+                        scrollToElement();
+                    }
+                } else {
+                    console.log('Challenge element not found for ID:', challengeId);
+                }
+            }, 500); // Wait for page to fully load
+        }
+    }
+
+    // Run the scroll check
+    scrollToChallengeFromUrl();
+});
+</script>
 {% endblock %}

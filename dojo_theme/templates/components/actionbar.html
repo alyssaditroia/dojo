@@ -97,6 +97,31 @@
     flex: 1;
   }
 
+  .workspace-challenge-info {
+    padding: 0.5em 1em;
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    max-width: 200px;
+    overflow: hidden;
+    transition: background-color 0.2s ease;
+  }
+
+  .workspace-challenge-info:hover {
+    background-color: var(--highlight);
+  }
+
+  .workspace-challenge-name {
+    margin-left: 0.5em;
+    color: #fff;
+    font-weight: 500;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+
+
   @keyframes banner-animation {
     0% {
       left: 50%;
@@ -160,22 +185,54 @@
   }
 </style>
 
+{% set active_challenge = challenge if challenge else None %}
+
 <div class="workspace-controls">
   <div id="workspace-notification-banner"></div>
   <div title="Change workspace" class="workspace-selector-body workspace-control">
     <i class="fas fa-bars workspace-highlight burger"></i>
     <select id="workspace-select">
+      {% if challenge %}
       {% for service in challenge.interfaces %}
       <option value="{{ service.name | lower }}: {{ service.port }}">&#160;&#160;{{ service.name }}</option><!-- I hate it :( -->
       {% endfor %}
+      {% endif %}
     </select>
   </div>
   <div title="Enter flag" class="workspace-control workspace-input">
     <i class="fas fa-flag workspace-highlight input-icon"></i>
     <input id="flag-input" type="text" placeholder="Flag">
-    <input type="hidden" id="current-challenge-id" value="{{ challenge.challenge_id }}" data-challenge-name="{{ challenge.name }}">
+    <input type="hidden" id="current-challenge-id" value="{% if active_challenge %}{{ active_challenge.challenge_id }}{% endif %}" data-challenge-name="{% if active_challenge %}{{ active_challenge.name }}{% endif %}">
   </div>
   <div class="workspace-control-spacer"></div>
+  {% if active_challenge %}
+  <!-- Challenge navigation controls - hidden on module page -->
+  <div class="challenge-navigation-controls" style="display: contents;">
+    <button id="challenge-list-toggle" title="Show challenge list" class="workspace-control btn btn-md btn-outline-secondary">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div id="challenge-list-dropdown" class="challenge-list-dropdown" style="display: none;">
+      <div class="challenge-list-header">
+        <span>Module Challenges</span>
+        <button class="challenge-list-close" id="challenge-list-close">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+      <div class="challenge-list-body" id="challenge-list-body">
+        <div class="challenge-list-loading">
+          <i class="fas fa-spinner fa-spin"></i> Loading challenges...
+        </div>
+      </div>
+    </div>
+    <div title="Show challenge details" class="workspace-control workspace-challenge-info" id="active-challenge-display">
+      <i class="fas fa-flag workspace-highlight"></i>
+      <span class="workspace-challenge-name">{{ active_challenge.name or active_challenge.id }}</span>
+    </div>
+    <button id="next-challenge" title="Go to next challenge" class="workspace-control btn btn-md btn-outline-secondary">
+      <i class="fas fa-arrow-right"></i>
+    </button>
+  </div>
+  {% endif %}
   <button id="challenge-restart" title="Restart challenge" class="workspace-control btn btn-md btn-outline-secondary btn-challenge-start">
     <i class="fas fa-redo"></i>
   </button>
@@ -191,3 +248,4 @@
     <i class="fas fa-expand"></i>
   </button>
 </div>
+

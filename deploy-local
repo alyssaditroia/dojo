@@ -1,0 +1,85 @@
+#!/bin/bash
+
+function usage {
+    echo "Usage: $0 [-w] [-p]"
+    echo ""
+    echo "  -w  rebuild workspace (removes workspace data to force rebuild)"
+    echo "  -p  production mode (sets DOJO_HOST to dojo.dlock.tech)"
+    exit
+}
+
+REBUILD_WORKSPACE=false
+PROD_MODE=false
+export DOJO_PATH="./"
+export DATA_PATH="./data"
+
+while getopts "wphl" opt; do
+    case $opt in
+    w)
+        REBUILD_WORKSPACE=true
+        ;;
+    p)
+        PROD_MODE=true
+        ;;
+    l)
+        LOCAL=true
+        ;;
+    h)
+        usage
+        ;;
+    \?)
+        echo "Invalid option: -$OPTARG" >&2
+        usage
+        ;;
+    esac
+done
+
+if [ "$REBUILD_WORKSPACE" = true ]; then
+    echo "Rebuilding workspace"
+    sleep 8
+    # Build workspace with new dojo
+    docker exec dojo bash -c "export DOJO_WORKSPACE=core && dojo compose --profile workspace up workspace-builder --force-recreate"
+
+    # Restart any user containers
+    docker exec dojo docker ps -q --filter "name=user_" | xargs -r docker exec dojo docker restart
+fi
+
+# check if production mode is set
+if [ "$PROD_MODE" = true ]; then
+    echo "Running in production mode"
+    export DOJO_HOST="dojo.dlock.tech"
+    export FRONTEND_HOST="app.dlock.tech"
+    export CORS_ORIGINS="https://${FRONTEND_HOST}"
+else
+
+    export DOJO_HOST="dojo.localhost"
+
+    if [ "$LOCAL" = true ]; then
+        echo "Running in local mode"
+        export FRONTEND_HOST="app.dojo.localhost"
+        export CORS_ORIGINS="http://${FRONTEND_HOST}"
+    else
+        export CORS_ORIGINS="http://localhost:3000"
+    fi
+fi
+
+docker build -t pwncollege/dojo .
+docker stop dojo
+docker rm dojo
+docker run \
+    --name dojo \
+    --privileged \
+    --device=/dev/kvm:/dev/kvm \
+    -v "${DOJO_PATH}:/opt/pwn.college" \
+    -v "${DATA_PATH}:/data" \
+    -p 23:22 \
+    -p 80:80 \
+    -p 443:443 \
+    -e INTERNET_FOR_ALL=True \
+    -e CORS_ORIGINS="${CORS_ORIGINS}" \
+    -e DOJO_HOST="${DOJO_HOST}" \
+    -e FRONTEND_HOST="${FRONTEND_HOST}" \
+    -e LETSENCRYPT_HOST="${DOJO_HOST}" \
+    -e VIRTUAL_HOST="${DOJO_HOST}" \
+    -d \
+    pwncollege/dojo

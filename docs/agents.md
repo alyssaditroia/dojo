@@ -193,3 +193,16 @@ SOCKET_PATH = "/var/run/docker.sock"
 ```
 
 Function and variable names must be self-documenting. If you feel the need to add a comment, first consider if better naming would make it unnecessary.
+
+
+
+
+# Frontend (React App)
+
+- frontend served from frontend/ folder
+- Use shadcn components 
+- No hardcoded colors or magic colors. Always use theme colors
+- We use framer motion for animations! Apple grade animation easing and quality
+- Our components should not be larger than 300-400 lines
+- we use bun for package management. Never use npm or yarn
+- Success color = primary, error color = destructive

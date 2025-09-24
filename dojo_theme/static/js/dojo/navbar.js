@@ -52,14 +52,94 @@ $(() => {
 });
 
 
+// Global function to scroll to active challenge
+window.scrollToActiveChallenge = function(challengeId) {
+    console.log('Attempting to scroll to challenge ID:', challengeId);
+
+    // Primary method: Find by data-challenge-id attribute
+    const challengeElement = document.querySelector(`[data-challenge-id="${challengeId}"]`);
+    console.log('Found challenge element by ID:', challengeElement);
+
+    if (challengeElement) {
+        challengeElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    // Fallback: Find the active challenge element by looking for challenge-active class
+    const activeChallenge = document.querySelector('.challenge-active');
+    console.log('Found active challenge element:', activeChallenge);
+    if (activeChallenge) {
+        activeChallenge.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        return;
+    }
+
+    console.log('Could not find challenge element to scroll to');
+};
+
 document.addEventListener('DOMContentLoaded', function () {
     const searchNavItem = document.querySelector('a.nav-link[href="#"] i.fa-search')?.closest('a');
     if (searchNavItem) {
         searchNavItem.addEventListener('click', function (e) {
-        e.preventDefault();
-        $('#searchModal').modal('show').on('shown.bs.modal', function () {
-            document.getElementById('searchInput').focus();
+            e.preventDefault();
+            $('#searchModal').modal('show').on('shown.bs.modal', function () {
+                document.getElementById('searchInput').focus();
             });
+        });
+    }
+
+    // Handle active challenge link clicks
+    const activeChallengeLink = document.querySelector('.active-challenge-link');
+    if (activeChallengeLink) {
+        activeChallengeLink.addEventListener('click', function(e) {
+            const challengeId = this.getAttribute('data-challenge-id');
+            const targetUrl = this.href.split('#')[0]; // URL without hash
+            const currentUrl = window.location.href.split('#')[0]; // Current URL without hash
+
+            console.log('Clicking active challenge link for:', challengeId);
+            console.log('Current URL:', currentUrl);
+            console.log('Target URL:', targetUrl);
+
+            // If we're already on the target page, prevent navigation and just scroll
+            if (currentUrl === targetUrl) {
+                e.preventDefault();
+                console.log('Already on target page, scrolling locally');
+
+                setTimeout(() => {
+                    const el = document.getElementById('challenge-' + challengeId) || document.querySelector('[data-challenge-id="' + challengeId + '"]');
+                    if (el) {
+                        const challengeIndex = el.querySelector('.accordion-item-name')?.getAttribute('data-challenge-index');
+
+                        const scrollToElement = () => {
+                            const rect = el.getBoundingClientRect();
+                            window.scrollTo({
+                                top: window.scrollY + rect.top - 100,
+                                behavior: 'smooth'
+                            });
+                            console.log('Scrolled to challenge element:', el);
+                        };
+
+                        if (challengeIndex) {
+                            const button = document.getElementById('challenges-header-button-' + challengeIndex);
+                            const body = document.getElementById('challenges-body-' + challengeIndex);
+
+                            if (button && body && !body.classList.contains('show')) {
+                                console.log('Expanding accordion for challenge', challengeIndex);
+                                button.click();
+                                setTimeout(scrollToElement, 350);
+                            } else {
+                                scrollToElement();
+                            }
+                        } else {
+                            scrollToElement();
+                        }
+                    } else {
+                        console.log('Element not found for challenge ID:', challengeId);
+                    }
+                }, 100);
+            } else {
+                // Let the link navigate normally with the hash - the module page will handle scrolling
+                console.log('Navigating to different page with hash');
+            }
         });
     }
 

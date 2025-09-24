@@ -28,4 +28,35 @@ document.addEventListener("DOMContentLoaded", function () {
         const storedTheme = localStorage.getItem('theme');
         document.body.classList.add(`theme-${storedTheme}`);
     }
+
+    // Add width toggle button
+    const widthToggle = document.createElement('button');
+    widthToggle.className = 'width-toggle';
+    widthToggle.innerHTML = localStorage.getItem('containerFull') === 'true' ? '[ ]' : '[=]';
+    widthToggle.title = 'Toggle container width';
+    document.body.appendChild(widthToggle);
+
+    // Apply saved width preference
+    if (localStorage.getItem('containerFull') === 'true') {
+        document.querySelectorAll('.container').forEach(container => {
+            container.classList.add('container-full');
+        });
+    }
+
+    // Toggle width on click
+    widthToggle.addEventListener('click', function() {
+        const containers = document.querySelectorAll('.container');
+        const isFull = containers[0]?.classList.contains('container-full');
+
+        containers.forEach(container => {
+            if (isFull) {
+                container.classList.remove('container-full');
+            } else {
+                container.classList.add('container-full');
+            }
+        });
+
+        localStorage.setItem('containerFull', !isFull);
+        widthToggle.innerHTML = isFull ? '[=]' : '[ ]';
+    });
 });

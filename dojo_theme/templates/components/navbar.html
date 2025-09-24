@@ -1,5 +1,7 @@
 {% from "macros/widgets.html" import navitem %}
 
+{% set active_challenge = get_current_dojo_challenge() if get_current_dojo_challenge else None %}
+
 <nav class="navbar navbar-expand-md navbar-dark fixed-top">
   <div class="container">
     <a href="{{ url_for('views.static_html', route='/') }}" class="brand-mono-bold wordmark">
@@ -25,6 +27,19 @@
       <hr class="d-sm-flex d-md-flex d-lg-none">
       <ul class="navbar-nav ml-md-auto d-block d-sm-flex d-md-flex">
         {% if authed() %}
+        {% if active_challenge %}
+        {% set challenge_url = url_for("pwncollege_dojo.view_dojo_path", dojo=active_challenge.dojo.reference_id, path=active_challenge.module.id) + "#challenge-" + active_challenge.challenge_id|string %}
+        <li class="nav-item active-challenge-nav">
+          <a class="nav-link active-challenge-link" href="{{ challenge_url }}" data-toggle="tooltip" data-placement="bottom" title="Active: {{ active_challenge.name or active_challenge.id }}" data-challenge-id="{{ active_challenge.challenge_id }}">
+            <span class="d-lg-none">
+              <i class="fas fa-flag"></i>
+            </span>
+            <span class="d-none d-lg-block">
+              <i class="fas fa-flag pr-1"></i>{{ (active_challenge.name or active_challenge.id)[:15] }}{% if (active_challenge.name or active_challenge.id)|length > 15 %}...{% endif %}
+            </span>
+          </a>
+        </li>
+        {% endif %}
         {% if is_admin() %}
           {{ navitem("Admin Panel", url_for("admin.view"), "fa-wrench", shrink=True) }}
         {% endif %}

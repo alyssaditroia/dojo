@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>pwn.college</title>
+    <link rel="icon" href="{{ url_for('views.themes', path='img/favicon.png') }}">
+    {% for css_file in vite_assets.css %}
+    <link rel="stylesheet" href="{{ url_for('views.themes', path=css_file) }}">
+    {% endfor %}
+  </head>
+  <body>
+    <div id="react-root"></div>
+    <script type="module" crossorigin src="{{ url_for('views.themes', path=vite_assets.js) }}"></script>
+  </body>
+</html>

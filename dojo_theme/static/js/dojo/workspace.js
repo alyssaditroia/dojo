@@ -8,7 +8,7 @@ function showNavbar() {
     $("main").removeClass("main-navbar-hidden");
 }
 
-function doFullscreen() {
+function doFullscreen(event) {
     if (document.getElementsByClassName("navbar")[0].classList.contains("navbar-hidden")) {
         showNavbar();
     }
