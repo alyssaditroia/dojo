@@ -45,6 +45,33 @@
   </a>
 {%- endmacro %}
 
+{% macro module_card(url, title=None, text_lines=None, icon=None, emoji=None, solve_percent=0) -%}
+  <li class="module-card">
+    <a class="text-decoration-none" href="{{ url }}">
+      <div class="module-card-body">
+        {% if title %}<div class="module-card-title">{{ title }}</div>{% endif %}
+        <div class="module-card-meta">
+          {% if icon %}
+            <img class="module-card-icon" src="{{ icon }}" alt="icon">
+          {% elif emoji %}
+            <div class="module-card-emoji">{{ emoji }}</div>
+          {% endif %}
+          {% if text_lines %}
+            <div class="module-card-lines">{% for text in text_lines %}<div class="module-card-line">{{ text }}</div>{% endfor %}</div>
+          {% endif %}
+        </div>
+        <div class="module-progress-wrapper">
+          <div class="module-progress-bar" style="width: {{ solve_percent }}%">
+            {% if solve_percent != 0 %}
+              <span class="module-progress-text">{{solve_percent|round(0, 'floor')|int}}%</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </a>
+  </li>
+{%- endmacro %}
+
 {% macro accordion_item(accordion_id, item_id, is_disabled, challenge_index=None) %}
   <div class="accordion-item">
     <div class="accordion-item-header" id="{{ accordion_id }}-header-{{ item_id }}">
