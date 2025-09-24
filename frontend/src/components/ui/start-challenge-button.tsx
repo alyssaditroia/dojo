@@ -5,13 +5,16 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Play, Loader2 } from 'lucide-react'
 import { useStartChallenge } from '@/hooks/useDojo'
-import { useUIStore, useDojoStore, useAuthStore } from '@/stores'
+import { useUIStore, useAuthStore } from '@/stores'
 import { cn } from '@/lib/utils'
 
 interface StartChallengeButtonProps {
   dojoId: string
   moduleId: string
   challengeId: string
+  challengeName?: string
+  dojoName?: string
+  moduleName?: string
   isSolved?: boolean
   variant?: 'default' | 'outline' | 'ghost' | 'secondary'
   size?: 'default' | 'sm' | 'lg'
@@ -25,6 +28,9 @@ export function StartChallengeButton({
   dojoId,
   moduleId,
   challengeId,
+  challengeName,
+  dojoName,
+  moduleName,
   isSolved = false,
   variant = 'default',
   size = 'default',
@@ -36,8 +42,6 @@ export function StartChallengeButton({
   const router = useRouter()
   const startChallengeMutation = useStartChallenge()
   const setActiveChallenge = useUIStore(state => state.setActiveChallenge)
-  const dojos = useDojoStore(state => state.dojos)
-  const modulesMap = useDojoStore(state => state.modules)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
 
   const handleStart = async (e: React.MouseEvent) => {
@@ -54,20 +58,14 @@ export function StartChallengeButton({
       return
     }
 
-    // Get data for optimistic update
-    const dojo = dojos.find(d => d.id === dojoId)
-    const modules = modulesMap[dojoId] || []
-    const module = modules.find(m => m.id === moduleId)
-    const challenge = module?.challenges?.find(c => c.id === challengeId)
-
     // 1. Update state immediately for instant UI feedback
     setActiveChallenge({
       dojoId,
       moduleId,
       challengeId,
-      challengeName: challenge?.name || challengeId,
-      dojoName: dojo?.name || dojoId,
-      moduleName: module?.name || moduleId,
+      challengeName: challengeName || challengeId,
+      dojoName: dojoName || dojoId,
+      moduleName: moduleName || moduleId,
       isStarting: true
     })
 
@@ -90,9 +88,9 @@ export function StartChallengeButton({
         dojoId,
         moduleId,
         challengeId,
-        challengeName: challenge?.name || challengeId,
-        dojoName: dojo?.name || dojoId,
-        moduleName: module?.name || moduleId,
+        challengeName: challengeName || challengeId,
+        dojoName: dojoName || dojoId,
+        moduleName: moduleName || moduleId,
         isStarting: false
       })
     }).catch((error) => {
@@ -102,9 +100,9 @@ export function StartChallengeButton({
         dojoId,
         moduleId,
         challengeId,
-        challengeName: challenge?.name || challengeId,
-        dojoName: dojo?.name || dojoId,
-        moduleName: module?.name || moduleId,
+        challengeName: challengeName || challengeId,
+        dojoName: dojoName || dojoId,
+        moduleName: moduleName || moduleId,
         isStarting: false
       })
     })

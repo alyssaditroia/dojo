@@ -17,36 +17,25 @@ export const initializeStores = async () => {
   }
 
   isInitializing = true
-  console.log('Initializing stores...')
+  console.log('=== INITIALIZING STORES ===')
 
   try {
     // 1. Initialize auth store first
     console.log('1. Fetching current user...')
     await useAuthStore.getState().fetchCurrentUser()
 
-    // 2. Initialize dojo store with basic data
-    console.log('2. Fetching dojos...')
-    await useDojoStore.getState().fetchDojos()
+    // Check final auth state
+    const authState = useAuthStore.getState()
+    console.log('1.1. Auth state after fetch:', {
+      isAuthenticated: authState.isAuthenticated,
+      user: authState.user,
+      error: authState.authError
+    })
 
-    // 3. Pre-fetch modules for all dojos (or at least check workspace first)
-    console.log('3. Checking workspace status first...')
-    const { workspaceService } = await import('@/services/workspace')
-    const workspaceResponse = await workspaceService.getCurrentChallenge()
+    // Note: Dojos and modules are now fetched server-side, not in client store
+    console.log('2. Dojos and modules are now fetched server-side')
 
-    if (workspaceResponse.current_challenge) {
-      const challenge = workspaceResponse.current_challenge
-      console.log('4. Active challenge found, pre-fetching modules for dojo:', challenge.dojo_id)
-
-      // 4. Fetch modules for the active challenge's dojo BEFORE processing workspace
-      await useDojoStore.getState().fetchModules(challenge.dojo_id)
-      console.log('5. Modules loaded, now processing active challenge...')
-    }
-
-    // 5. Process workspace with all required data already loaded
-    console.log('6. Processing workspace response...')
-    await useUIStore.getState().fetchActiveChallenge()
-
-    console.log('Store initialization complete')
+    console.log('=== STORE INITIALIZATION COMPLETE ===')
   } catch (error) {
     console.error('Store initialization failed:', error)
   } finally {

@@ -14,10 +14,25 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body>
-        <Providers>
-          {children}
-        </Providers>
+      <body suppressHydrationWarning>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              const mode = localStorage.getItem('dojo-ui-theme') || 'system';
+              let resolvedMode = mode;
+              if (mode === 'system') {
+                resolvedMode = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+              }
+              document.documentElement.classList.add(resolvedMode === 'dark' ? 'dark' : 'light');
+              document.documentElement.style.visibility = '';
+            `
+          }}
+        />
+        <div className="min-h-screen bg-background text-foreground">
+          <Providers>
+            {children}
+          </Providers>
+        </div>
       </body>
     </html>
   )

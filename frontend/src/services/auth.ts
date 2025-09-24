@@ -107,6 +107,30 @@ class AuthService {
     }
   }
 
+  // Fetch current user from server to verify authentication
+  async fetchCurrentUser(): Promise<{ success: boolean; data?: any; error?: string }> {
+    try {
+      const response = await ctfdApiClient.get<{ success: boolean; data?: any }>('/users/me')
+
+      if (response.success && response.data) {
+        // Update localStorage with fresh user data
+        localStorage.setItem('ctfd_user', JSON.stringify(response.data))
+        return { success: true, data: response.data }
+      } else {
+        // Clear invalid localStorage data
+        localStorage.removeItem('ctfd_user')
+        return { success: false, error: 'User not authenticated' }
+      }
+    } catch (error) {
+      // Clear localStorage on error (likely not authenticated)
+      localStorage.removeItem('ctfd_user')
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to fetch user'
+      }
+    }
+  }
+
   async updateProfile(data: any): Promise<{ success: boolean; user?: any }> {
     const response = await ctfdApiClient.patch<{ success: boolean; user?: any }>('/users/me', data)
     if (response.success && response.user) {

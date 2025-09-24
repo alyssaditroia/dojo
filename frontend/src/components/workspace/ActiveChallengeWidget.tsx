@@ -50,22 +50,22 @@ export function ActiveChallengeWidget({
     return null
   }
 
-  // Don't show if we're already on the challenge page
-  const challengePath = `/dojo/${activeChallenge.dojoId}/module/${activeChallenge.moduleId}/workspace/challenge/${activeChallenge.challengeId}`
-  console.log('Challenge path comparison:', {
-    challengePath,
+  // Don't show if we're on any workspace page
+  const isOnWorkspacePage = pathname.includes('/workspace/')
+  console.log('Workspace page check:', {
     currentPath: pathname,
-    matches: pathname === challengePath
+    isOnWorkspacePage
   })
 
-  if (pathname === challengePath) {
-    console.log('On challenge page, hiding widget')
+  if (isOnWorkspacePage) {
+    console.log('On workspace page, hiding widget')
     return null
   }
 
   console.log('Showing ActiveChallengeWidget')
 
   const handleGoToChallenge = () => {
+    const challengePath = `/dojo/${activeChallenge.dojoId}/module/${activeChallenge.moduleId}/workspace/challenge/${activeChallenge.challengeId}`
     router.push(challengePath)
   }
 

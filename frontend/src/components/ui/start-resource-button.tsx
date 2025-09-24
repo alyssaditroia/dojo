@@ -4,13 +4,14 @@ import React, { startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Play, BookOpen, Video, Loader2 } from 'lucide-react'
-import { useUIStore, useDojoStore, useAuthStore } from '@/stores'
+import { useAuthStore } from '@/stores'
 import { cn } from '@/lib/utils'
 
 interface StartResourceButtonProps {
   dojoId: string
   moduleId: string
   resourceId: string
+  resourceType?: 'lecture' | 'markdown' | 'header'
   variant?: 'default' | 'outline' | 'ghost' | 'secondary'
   size?: 'default' | 'sm' | 'lg'
   className?: string
@@ -22,6 +23,7 @@ export function StartResourceButton({
   dojoId,
   moduleId,
   resourceId,
+  resourceType = 'markdown',
   variant = 'default',
   size = 'default',
   className,
@@ -29,8 +31,6 @@ export function StartResourceButton({
   onClick
 }: StartResourceButtonProps) {
   const router = useRouter()
-  const dojos = useDojoStore(state => state.dojos)
-  const modulesMap = useDojoStore(state => state.modules)
   const isAuthenticated = useAuthStore(state => state.isAuthenticated)
 
   const handleStart = async (e: React.MouseEvent) => {
@@ -55,11 +55,7 @@ export function StartResourceButton({
 
   // Determine icon based on resource type
   const getIcon = () => {
-    const modules = modulesMap[dojoId] || []
-    const module = modules.find(m => m.id === moduleId)
-    const resource = module?.resources?.find(r => r.id === resourceId)
-
-    if (resource?.type === 'lecture') {
+    if (resourceType === 'lecture') {
       return <Video className="h-3 w-3 mr-1" />
     }
     return <BookOpen className="h-3 w-3 mr-1" />

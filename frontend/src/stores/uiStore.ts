@@ -133,59 +133,8 @@ export const useUIStore = create<UIStore>((set) => ({
   setActiveChallenge: (challenge) => set({ activeChallenge: challenge }),
 
   fetchActiveChallenge: async () => {
-    console.log('fetchActiveChallenge called (assuming workspace data already fetched)')
-    try {
-      const { workspaceService } = await import('@/services/workspace')
-      const response = await workspaceService.getCurrentChallenge()
-      console.log('Workspace API response:', response)
-
-      if (response.current_challenge) {
-        const challenge = response.current_challenge
-        console.log('Active challenge found:', challenge)
-
-        // Get the dojo and module stores (should already have data)
-        const { useDojoStore } = await import('./dojoStore')
-        const dojos = useDojoStore.getState().dojos
-        const modulesMap = useDojoStore.getState().modules
-
-        // Simple lookup: find dojo by ID
-        const dojo = dojos.find(d => d.id === challenge.dojo_id)
-
-        // Get modules for this dojo
-        const modules = modulesMap[challenge.dojo_id] || []
-
-        // Find module by ID
-        const module = modules.find(m => m.id === challenge.module_id)
-
-        // Find challenge by ID
-        const challengeObj = module?.challenges?.find(c => c.id === challenge.challenge_id)
-
-        console.log('Resolved names:', {
-          dojoName: dojo?.name,
-          moduleName: module?.name,
-          challengeName: challengeObj?.name
-        })
-
-        set({
-          activeChallenge: {
-            dojoId: challenge.dojo_id,
-            moduleId: challenge.module_id,
-            challengeId: challenge.challenge_id,
-            challengeName: challengeObj?.name || challenge.challenge_name,
-            dojoName: dojo?.name || challenge.dojo_id,
-            moduleName: module?.name || challenge.module_id
-          }
-        })
-        console.log('Active challenge set with name:', challengeObj?.name || challenge.challenge_name)
-      } else {
-        // No active challenge
-        console.log('No active challenge found')
-        set({ activeChallenge: null })
-      }
-    } catch (error) {
-      console.error('Failed to fetch active challenge:', error)
-      // Don't clear on error, keep current state
-    }
+    // This method is deprecated - active challenge is now handled in Layout component
+    console.log('fetchActiveChallenge called but deprecated - active challenge handled in Layout')
   }
 }))
 

@@ -109,25 +109,28 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       fetchCurrentUser: async () => {
-        if (!authService.isAuthenticated()) {
-          set({ user: null, isAuthenticated: false })
-          return
-        }
-
         set({ isLoading: true })
         try {
-          const user = authService.getCurrentUser()
-          if (user) {
+          const response = await authService.fetchCurrentUser()
+
+          if (response.success && response.data) {
             set({
-              user,
+              user: {
+                id: response.data.id?.toString() || response.data.user_id?.toString(),
+                username: response.data.name || response.data.username,
+                email: response.data.email,
+                type: response.data.type || 'user'
+              },
               isAuthenticated: true,
-              isLoading: false
+              isLoading: false,
+              authError: null
             })
           } else {
             set({
               user: null,
               isAuthenticated: false,
-              isLoading: false
+              isLoading: false,
+              authError: response.error || 'Not authenticated'
             })
           }
         } catch (error) {

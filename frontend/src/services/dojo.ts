@@ -42,6 +42,41 @@ export interface DojoModulesResponse {
   }>
 }
 
+export interface DojoDetailResponse {
+  success: boolean
+  dojo: {
+    id: string
+    name: string
+    description?: string
+    official: boolean
+    award?: {
+      belt?: string
+      emoji?: string
+    }
+    modules: Array<{
+      id: string
+      name: string
+      description?: string
+      resources?: Array<{
+        id: string
+        name: string
+        type: 'markdown' | 'lecture' | 'header'
+        content?: string
+        video?: string
+        playlist?: string
+        slides?: string
+        expandable?: boolean
+      }>
+      challenges: Array<{
+        id: string
+        name: string
+        required: boolean
+        description?: string
+      }>
+    }>
+  }
+}
+
 export interface DojoSolvesResponse {
   success: boolean
   solves: Array<{
@@ -84,6 +119,7 @@ export interface SurveyResponse {
 class DojoService {
   // Get all available dojos
   async getDojos(): Promise<DojoListResponse> {
+    // Check if API URLs are available (for server-side rendering)
     return apiClient.get<DojoListResponse>('/dojos')
   }
 
@@ -95,6 +131,35 @@ class DojoService {
   // Get dojo modules
   async getDojoModules(dojoId: string): Promise<DojoModulesResponse> {
     return apiClient.get<DojoModulesResponse>(`/dojos/${dojoId}/modules`)
+  }
+
+  // Get dojo details with modules
+  async getDojoDetail(dojoId: string): Promise<DojoDetailResponse> {
+    try {
+      // For now, combine separate API calls - in future this could be a single endpoint
+      const [dojoResponse, modulesResponse] = await Promise.all([
+        this.getDojos().then(res => res.dojos.find(d => d.id === dojoId)),
+        this.getDojoModules(dojoId)
+      ])
+
+      if (!dojoResponse) {
+        throw new Error(`Dojo ${dojoId} not found`)
+      }
+
+      return {
+        success: true,
+        dojo: {
+          id: dojoResponse.id,
+          name: dojoResponse.name,
+          description: dojoResponse.description,
+          official: dojoResponse.official,
+          award: dojoResponse.award,
+          modules: modulesResponse.modules || []
+        }
+      }
+    } catch (error) {
+      throw new Error(`Failed to fetch dojo details: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    }
   }
 
   // Get user's solves in a dojo

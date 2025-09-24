@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react'
 import { initializeStores } from '@/stores'
 import { WorkspaceProvider } from '@/components/providers/WorkspaceProvider'
 import { ConditionalHeader } from '@/components/layout/ConditionalHeader'
+import { ActiveChallengeProvider } from '@/components/providers/ActiveChallengeProvider'
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient())
@@ -20,10 +21,10 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
           <WorkspaceProvider>
-            <div className="min-h-screen bg-background">
+            <ActiveChallengeProvider>
               <ConditionalHeader />
               <main className="flex-1">{children}</main>
-            </div>
+            </ActiveChallengeProvider>
           </WorkspaceProvider>
         </TooltipProvider>
       </QueryClientProvider>

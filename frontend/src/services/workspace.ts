@@ -10,7 +10,7 @@ export interface WorkspaceResponse {
     dojo_id: string
     module_id: string
     challenge_id: string
-    challenge_name: string
+    challenge_name?: string // Optional since API might not provide it
   }
 }
 

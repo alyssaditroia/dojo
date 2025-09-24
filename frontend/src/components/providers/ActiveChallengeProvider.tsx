@@ -2,17 +2,15 @@
 
 import { useEffect } from 'react'
 import { usePathname } from 'next/navigation'
-import { Header } from './Header'
-import { HeaderProvider } from '@/contexts/HeaderContext'
-import { ActiveChallengeWidget } from '@/components/workspace/ActiveChallengeWidget'
 import { useUIStore, useAuthStore } from '@/stores'
 import { workspaceService } from '@/services/workspace'
+import { ActiveChallengeWidget } from '@/components/workspace/ActiveChallengeWidget'
 
-interface LayoutProps {
+interface ActiveChallengeProviderProps {
   children: React.ReactNode
 }
 
-export function Layout({ children }: LayoutProps) {
+export function ActiveChallengeProvider({ children }: ActiveChallengeProviderProps) {
   const pathname = usePathname()
   const activeChallenge = useUIStore(state => state.activeChallenge)
   const setActiveChallenge = useUIStore(state => state.setActiveChallenge)
@@ -21,7 +19,7 @@ export function Layout({ children }: LayoutProps) {
   const authError = useAuthStore(state => state.authError)
 
   // Debug auth state changes
-  console.log('Layout render - Auth state:', {
+  console.log('ActiveChallengeProvider render - Auth state:', {
     isAuthenticated,
     user,
     authError,
@@ -31,26 +29,26 @@ export function Layout({ children }: LayoutProps) {
 
   // Fetch active challenge from server on page load/refresh - only if authenticated
   useEffect(() => {
-    console.log('Layout: Auth state check:', {
+    console.log('ActiveChallengeProvider: Auth state check:', {
       isAuthenticated,
       localStorage_ctfd_user: !!localStorage.getItem('ctfd_user')
     })
 
     if (!isAuthenticated) {
-      console.log('Layout: Not authenticated, clearing active challenge')
+      console.log('ActiveChallengeProvider: Not authenticated, clearing active challenge')
       setActiveChallenge(null)
       return
     }
 
     const fetchActiveChallenge = async () => {
       try {
-        console.log('Layout: Fetching active challenge from server...')
+        console.log('ActiveChallengeProvider: Fetching active challenge from server...')
         const response = await workspaceService.getCurrentChallenge()
-        console.log('Layout: Active challenge response:', response)
+        console.log('ActiveChallengeProvider: Active challenge response:', response)
 
         if (response.current_challenge) {
           const challenge = response.current_challenge
-          console.log('Layout: Setting active challenge:', challenge)
+          console.log('ActiveChallengeProvider: Setting active challenge:', challenge)
 
           setActiveChallenge({
             dojoId: challenge.dojo_id,
@@ -62,11 +60,11 @@ export function Layout({ children }: LayoutProps) {
             isStarting: false
           })
         } else {
-          console.log('Layout: No active challenge from server, clearing state')
+          console.log('ActiveChallengeProvider: No active challenge from server, clearing state')
           setActiveChallenge(null)
         }
       } catch (error) {
-        console.error('Layout: Failed to fetch active challenge:', error)
+        console.error('ActiveChallengeProvider: Failed to fetch active challenge:', error)
         // Don't clear active challenge on error - keep existing state
       }
     }
@@ -92,23 +90,15 @@ export function Layout({ children }: LayoutProps) {
     }
   }
 
-  // Check if we should show header
-  const isWorkspacePage = pathname.includes('/workspace/')
-  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password')
-  const showHeader = !isWorkspacePage && !isAuthPage
-
   return (
-    <HeaderProvider>
-      <div className="min-h-screen bg-background">
-        {showHeader && <Header />}
-        <main>{children}</main>
+    <>
+      {children}
 
-        {/* Active Challenge Widget - shows when there's an active challenge and we're not on the challenge page */}
-        <ActiveChallengeWidget
-          activeChallenge={activeChallenge}
-          onKillChallenge={handleKillChallenge}
-        />
-      </div>
-    </HeaderProvider>
+      {/* Active Challenge Widget - shows when there's an active challenge and we're not on the challenge page */}
+      <ActiveChallengeWidget
+        activeChallenge={activeChallenge}
+        onKillChallenge={handleKillChallenge}
+      />
+    </>
   )
 }
