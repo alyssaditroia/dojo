@@ -56,6 +56,9 @@ export const useAuthStore = create<AuthStore>()(
               isAuthenticated: true,
               loginLoading: false
             })
+            // Rehydrate stores after login
+            const { useDojoStore } = await import('./dojoStore')
+            useDojoStore.getState().rehydrate?.()
           } else {
             throw new Error(response.errors?.join(', ') || 'Login failed')
           }

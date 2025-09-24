@@ -4,7 +4,7 @@ import React, { startTransition } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Play, BookOpen, Video, Loader2 } from 'lucide-react'
-import { useUIStore, useDojoStore } from '@/stores'
+import { useUIStore, useDojoStore, useAuthStore } from '@/stores'
 import { cn } from '@/lib/utils'
 
 interface StartResourceButtonProps {
@@ -29,9 +29,9 @@ export function StartResourceButton({
   onClick
 }: StartResourceButtonProps) {
   const router = useRouter()
-  const setActiveResource = useUIStore(state => state.setActiveResource)
   const dojos = useDojoStore(state => state.dojos)
   const modulesMap = useDojoStore(state => state.modules)
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
 
   const handleStart = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -41,26 +41,13 @@ export function StartResourceButton({
       onClick(e)
     }
 
-    // Get data for optimistic update
-    const dojo = dojos.find(d => d.id === dojoId)
-    const modules = modulesMap[dojoId] || []
-    const module = modules.find(m => m.id === moduleId)
-    const resource = module?.resources?.find(r => r.id === resourceId)
-
-    // 1. Set active resource state immediately (optimistic update with proper names)
-    if (setActiveResource) {
-      setActiveResource({
-        dojoId,
-        moduleId,
-        resourceId,
-        resourceName: resource?.name || resourceId,
-        dojoName: dojo?.name || dojoId,
-        moduleName: module?.name || moduleId,
-        resourceType: resource?.type || 'markdown'
-      })
+    // Check authentication first
+    if (!isAuthenticated) {
+      router.push('/login')
+      return
     }
 
-    // 2. Navigate immediately using startTransition for instant feel
+    // Navigate to resource workspace
     startTransition(() => {
       router.push(`/dojo/${dojoId}/module/${moduleId}/workspace/resource/${resourceId}`)
     })

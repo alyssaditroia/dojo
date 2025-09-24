@@ -7,12 +7,13 @@ import { Header } from './Header'
 export function ConditionalHeader() {
   const pathname = usePathname()
 
-  // Check if we're in a workspace page
+  // Check if we're in a workspace page or auth page
   const isWorkspacePage = pathname.includes('/workspace/')
+  const isAuthPage = pathname.startsWith('/login') || pathname.startsWith('/register') || pathname.startsWith('/forgot-password')
 
   return (
     <AnimatePresence mode="wait">
-      {!isWorkspacePage && (
+      {!isWorkspacePage && !isAuthPage && (
         <motion.div
           key="header"
           initial={{ y: -64, opacity: 0 }}

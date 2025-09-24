@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Play, Loader2 } from 'lucide-react'
 import { useStartChallenge } from '@/hooks/useDojo'
-import { useUIStore, useDojoStore } from '@/stores'
+import { useUIStore, useDojoStore, useAuthStore } from '@/stores'
 import { cn } from '@/lib/utils'
 
 interface StartChallengeButtonProps {
@@ -38,6 +38,7 @@ export function StartChallengeButton({
   const setActiveChallenge = useUIStore(state => state.setActiveChallenge)
   const dojos = useDojoStore(state => state.dojos)
   const modulesMap = useDojoStore(state => state.modules)
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
 
   const handleStart = async (e: React.MouseEvent) => {
     e.stopPropagation()
@@ -45,6 +46,12 @@ export function StartChallengeButton({
     // Call custom onClick if provided
     if (onClick) {
       onClick(e)
+    }
+
+    // Check authentication first
+    if (!isAuthenticated) {
+      router.push('/login')
+      return
     }
 
     // Get data for optimistic update

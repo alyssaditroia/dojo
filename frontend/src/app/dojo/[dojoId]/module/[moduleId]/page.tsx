@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge'
 import { Markdown } from '@/components/ui/markdown'
 import { StartChallengeButton } from '@/components/ui/start-challenge-button'
 import { StartResourceButton } from '@/components/ui/start-resource-button'
-import { useDojoStore, useHeaderState, useUIStore } from '@/stores'
+import { useDojoStore, useHeaderState, useUIStore, useAuthStore } from '@/stores'
 import { ArrowLeft, CheckCircle, Circle, Clock, FileText, Video, ChevronRight, Play, BookOpen, Loader2 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { motion, AnimatePresence } from 'framer-motion'
@@ -37,6 +37,9 @@ export default function ModulePage({ params }: ModulePageProps) {
   const solvesMap = useDojoStore(state => state.solves)
   const activeChallenge = useUIStore(state => state.activeChallenge)
 
+  // Auth state
+  const isAuthenticated = useAuthStore(state => state.isAuthenticated)
+
   // Find data directly
   const dojo = dojos.find(d => d.id === dojoId)
   const modules = modulesMap[dojoId || ''] || []
@@ -51,8 +54,8 @@ export default function ModulePage({ params }: ModulePageProps) {
   const moduleError = useDojoStore(state => state.moduleError)
   const solveError = useDojoStore(state => state.solveError)
 
-  const isLoading = loadingDojos || loadingModules[dojoId || ''] || loadingSolves[`${dojoId}-all`]
-  const error = dojoError || moduleError[dojoId || ''] || solveError[`${dojoId}-all`]
+  const isLoading = loadingDojos || loadingModules[dojoId || ''] || (isAuthenticated && loadingSolves[`${dojoId}-all`])
+  const error = dojoError || moduleError[dojoId || ''] || (isAuthenticated && solveError[`${dojoId}-all`])
 
   // Show loading only briefly, then show error state if API is down
   const showLoading = false // Temporarily disable loading since API is down
@@ -60,9 +63,12 @@ export default function ModulePage({ params }: ModulePageProps) {
   useEffect(() => {
     if (dojoId) {
       useDojoStore.getState().fetchModules(dojoId)
-      useDojoStore.getState().fetchSolves(dojoId)
+      // Only fetch solves if user is authenticated
+      if (isAuthenticated) {
+        useDojoStore.getState().fetchSolves(dojoId)
+      }
     }
-  }, [dojoId])
+  }, [dojoId, isAuthenticated])
 
   // Timeout to prevent infinite loading when API is down
   useEffect(() => {
