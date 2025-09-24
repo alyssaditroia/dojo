@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { Logo } from '@/components/ui/Logo'
-import { useAuthStore, useDojoStore, useUIStore } from '@/stores'
+import { useAuthStore, useUIStore } from '@/stores'
 import {
   Menu, X, User, LogOut, Shield, ChevronRight,
   BookOpen, Trophy, Users, Settings, Search
@@ -27,7 +27,6 @@ export function Header() {
   const isLoading = useAuthStore(state => state.isLoading)
   const user = useAuthStore(state => state.user)
   const logout = useAuthStore(state => state.logout)
-  const dojos = useDojoStore(state => state.dojos)
   const isHeaderHidden = useUIStore(state => state.isHeaderHidden)
 
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -62,7 +61,7 @@ export function Header() {
   }, [lastScrollY])
 
   // Get current dojo info if we're on a dojo page
-  const currentDojo = dojoId ? dojos?.find(d => d.id === dojoId) : null
+  const currentDojo = dojoId ? null : null // TODO: Get dojo name from page context
 
   const handleLogout = async () => {
     await logout()
