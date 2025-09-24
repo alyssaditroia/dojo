@@ -509,6 +509,8 @@ p[data-hide="true"] {
 
 .card-icon {
     position: absolute;
+    top: 75%;
+    left: 78%;
     transform: translate(-50%, -50%);
     right: auto;
     bottom: auto;
