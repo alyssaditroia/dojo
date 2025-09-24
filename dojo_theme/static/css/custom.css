@@ -391,27 +391,43 @@ p[data-hide="true"] {
 }
 
 .card-body .progress-bar {
-  background-color: var(--brand-blue);
-  opacity: 30%;
-  position: absolute;
-  left: 0px;
-  right: 0px;
-  bottom: 0px;
-  height: 18px;
-  max-width: 100%;
-  border-radius: 2px;
-  transition: all 0.2s ease;
-  container: progress-bar / inline-size;
+    background-color: var(--brand-blue);
+    opacity: 30%;
+    position: absolute;
+    left: 0px;
+    right: 0px;
+    bottom: 0px;
+    height: 20px;
+    max-width: 100%;
+    border-radius: 2px;
+    transition: all 0.2s ease;
+    container: progress-bar / inline-size;
 }
 
 .card-body .progress-bar[style*="width: 100"] {
-  background-color: var(--brand-green) !important;
+    background-color: var(--brand-green) !important;
 }
 
 .card-body .progress-bar .progress-bar-text {
-  opacity: 0%;
-  font-size: 0.75em;
-  transition: all 0.2s ease;
+    opacity: 0%;
+    font-size: 0.75em;
+    transition: all 0.2s ease;
+}
+
+.card-title {
+    font-size: 1.6rem;
+    font-weight: 600;
+    color: var(--brand-blue);
+    max-width: 100%;
+    position: relative;
+    line-height: 1.5;
+    overflow-wrap: normal;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    line-clamp: 3;
+    -webkit-box-orient: vertical;
 }
 
 .card-title {
@@ -434,12 +450,12 @@ p[data-hide="true"] {
 }
 
 .card-small:hover .card-body .progress-bar .progress-bar-text {
-  opacity: 100%;
+    opacity: 100%;
 }
 
 
 .card-small:hover .card-body .progress-bar {
-  opacity: 100%;
+    opacity: 100%;
 }
 
 .card-list {
@@ -447,6 +463,16 @@ p[data-hide="true"] {
     flex-direction: row;
     flex-wrap: wrap;
     padding: 0px;
+}
+
+.btn, .challenge-input {
+    border-radius: 8px;
+    padding: 8px 8px;
+    font-size: 16px;
+}
+
+.fas {
+    padding-right: 0.75rem;
 }
 
 .card-small {
@@ -483,8 +509,6 @@ p[data-hide="true"] {
 
 .card-icon {
     position: absolute;
-    top: 70%;
-    left: 75%;
     transform: translate(-50%, -50%);
     right: auto;
     bottom: auto;
@@ -495,9 +519,10 @@ p[data-hide="true"] {
 }
 
 .card-icon > img {
-    height: 35px;
-    width: 100px;
-    margin-right: 20px;
+    height: 40px;
+    width: 105px;
+    margin-right: 18px;
+    margin-top: 17px;
 }
 
 .accordion-item {
@@ -505,14 +530,23 @@ p[data-hide="true"] {
     background-color: inherit;
 }
 
+.accordion-item:has(.collapse.show) .accordion-item-header,
+.accordion-item:has(.collapsing) .accordion-item-header {
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
 .accordion-item-header {
     padding: .75rem 1.25rem;
     background-color: rgba(255,255,255,0.1);
+    border-radius: 8px;
 }
 
 .accordion-item-body {
     padding: 1.25rem;
     background-color: rgba(255,255,255,0.03);
+    border-bottom-left-radius: 8px;
+    border-bottom-right-radius: 8px;
 }
 
 .accordion-item-name {
