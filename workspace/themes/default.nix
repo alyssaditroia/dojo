@@ -7,6 +7,7 @@ let
   gruvbox = import ./gruvbox.nix;
   amethyst = import ./amethyst.nix;
   solarized = import ./solarized.nix;
+  perplexity = import ./perplexity.nix;
 
   # Helper function to convert terminal colors to JSON
   terminalToJson = theme: pkgs.writeText "terminal-theme.json" (builtins.toJSON theme.terminal);
@@ -42,6 +43,10 @@ let
       baseSettings // {
         "workbench.colorTheme" = "Solarized Dark";
       }
+    else if themeName == "perplexity" then
+      baseSettings // {
+        "workbench.colorTheme" = "Default Dark+";
+      }
     else # amethyst and any other themes use default
       baseSettings // {
         "workbench.colorTheme" = "Default Dark+";
@@ -50,7 +55,7 @@ let
 
   # Available themes
   themes = {
-    inherit matrix everforest gruvbox amethyst solarized;
+    inherit matrix everforest gruvbox amethyst solarized perplexity;
   };
 
   # Function to get theme by name with fallback

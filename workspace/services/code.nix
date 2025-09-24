@@ -75,6 +75,9 @@ let
       "gruvbox")
         THEME_SETTINGS=$(cat ${themes.getVSCodeTheme "gruvbox"})
         ;;
+      "perplexity")
+        THEME_SETTINGS=$(cat ${themes.getVSCodeTheme "perplexity"})
+        ;;
       *)
         THEME_SETTINGS=$(cat ${themes.getVSCodeTheme "matrix"})
         echo "[CODE] Unknown theme '$THEME_NAME', using matrix" >&2

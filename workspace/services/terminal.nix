@@ -76,6 +76,9 @@ EOF
       "gruvbox")
         THEME=$(cat ${themes.getTerminalTheme "gruvbox"})
         ;;
+      "perplexity")
+        THEME=$(cat ${themes.getTerminalTheme "perplexity"})
+        ;;
       *)
         THEME=$(cat ${themes.getTerminalTheme "matrix"})
         echo "[TERMINAL] Unknown theme '$THEME_NAME', using matrix" >&2
