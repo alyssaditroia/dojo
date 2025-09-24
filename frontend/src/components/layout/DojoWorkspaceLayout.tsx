@@ -323,15 +323,7 @@ export function DojoWorkspaceLayout({
 
         {/* Main Workspace Panel */}
         <ResizablePanel defaultSize={sidebarCollapsed ? 97 : (100 - optimalSidebarWidth)}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{
-              duration: 0.3,
-              ease: [0.25, 0.46, 0.45, 0.94]
-            }}
-            className="flex flex-col h-full bg-background"
-          >
+          <div className="flex flex-col h-full bg-background">
             {/* Unified animated header for both challenges and resources */}
             <AnimatedWorkspaceHeader
               activeChallenge={activeChallenge}
@@ -373,7 +365,7 @@ export function DojoWorkspaceLayout({
               onServiceChange={setActiveService}
               onResourceTabChange={setActiveResourceTab}
             />
-          </motion.div>
+          </div>
         </ResizablePanel>
       </ResizablePanelGroup>
 

@@ -4,6 +4,7 @@ import { everforestTheme } from './definitions/everforest'
 import { gruvboxTheme } from './definitions/gruvbox'
 import { solarizedTheme } from './definitions/solarized'
 import { matrixTheme } from './definitions/matrix'
+import { perplexityTheme } from './definitions/perplexity'
 
 // Registry of all available themes
 export const themeRegistry: Record<string, ThemeDefinition> = {
@@ -11,7 +12,8 @@ export const themeRegistry: Record<string, ThemeDefinition> = {
   everforest: everforestTheme,
   gruvbox: gruvboxTheme,
   solarized: solarizedTheme,
-  matrix: matrixTheme
+  matrix: matrixTheme,
+  perplexity: perplexityTheme
 }
 
 // Get all available themes as an array
@@ -36,7 +38,7 @@ export function themeExists(id: string): boolean {
 
 // Get default theme
 export function getDefaultTheme(): ThemeDefinition {
-  return amethystTheme
+  return everforestTheme
 }
 
 // Helper to convert ThemeColors to CSS variables

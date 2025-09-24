@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { useDojoStore, useAuthStore } from '@/stores'
 import { Markdown } from '@/components/ui/markdown'
+import { Belt } from '@/components/ui/belt'
 import { ArrowLeft, BookOpen, Users, Trophy, Target, ChevronRight, Activity, Zap } from 'lucide-react'
 import { motion } from 'framer-motion'
 
@@ -80,11 +81,10 @@ export function DojoPageClient({ dojo, dojoId }: DojoPageClientProps) {
   const solvedChallengeIds = new Set(solves.map(solve => solve.challenge_id))
 
   const getDojoIcon = (dojo: DojoDetail) => {
-    // If dojo has an award with a belt, use the belt SVG
+    // If dojo has an award with a belt, use the Belt component
     if (dojo?.award?.belt && dojo.official) {
-      return <img
-        src={`/belt/${dojo.award.belt}.svg`}
-        alt={`${dojo.award.belt} belt`}
+      return <Belt
+        color={dojo.award.belt}
         className="h-8 w-auto max-w-[72px]"
       />
     }

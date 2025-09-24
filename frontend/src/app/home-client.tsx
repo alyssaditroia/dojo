@@ -1,15 +1,16 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Loader2, AlertCircle, Star, Users, Trophy, BookOpen, Zap } from 'lucide-react'
 import { Markdown } from '@/components/ui/markdown'
 import { Belt } from '@/components/ui/belt'
+import { DojoNinja } from '@/components/ui/dojo-ninja'
 import { motion } from 'framer-motion'
 import { useMemo } from 'react'
-import ninjaImage from '@/assets/ninja.png'
 
 interface Dojo {
   id: string
@@ -237,10 +238,11 @@ export function HomePageClient({ dojos }: HomePageClientProps) {
                   transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
                   className="relative"
                 >
-                  <img
-                    src={ninjaImage}
-                    alt="Security Ninja"
+                  <DojoNinja
                     className="w-[400px] h-[400px] sm:w-80 sm:h-80 lg:w-[600px] lg:h-[600px] drop-shadow-2xl"
+                    width={600}
+                    height={600}
+                    priority
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent rounded-full blur-3xl -z-10" />
                 </motion.div>

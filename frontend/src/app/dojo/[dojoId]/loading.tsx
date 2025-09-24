@@ -3,17 +3,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 export default function DojoLoading() {
   return (
     <div className="min-h-screen bg-background">
-      {/* Header skeleton */}
-      <div className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container flex h-14 items-center">
-          <Skeleton className="h-8 w-32" />
-          <div className="ml-auto flex items-center space-x-4">
-            <Skeleton className="h-8 w-24" />
-            <Skeleton className="h-8 w-20" />
-          </div>
-        </div>
-      </div>
-
       {/* Main content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Back button */}
