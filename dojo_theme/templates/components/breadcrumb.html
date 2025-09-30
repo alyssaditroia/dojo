@@ -1,0 +1,124 @@
+<!-- <div class="breadcrumb-nav">
+  <div class="container">
+    <nav aria-label="breadcrumb">
+      <ol class="breadcrumb">
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('pwncollege_dojos.listing') }}" class="breadcrumb-link">
+            <i class="fas fa-torii-gate"></i>
+            <span>Dojos</span>
+          </a>
+        </li>
+        
+        {% if dojo %}
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('pwncollege_dojo.listing', dojo=dojo.reference_id) }}" class="breadcrumb-link">
+            <span>{{ dojo.name or dojo.id }}</span>
+          </a>
+        </li>
+        {% endif %}
+        
+        {% if module %}
+        <li class="breadcrumb-item">
+          <a href="{{ url_for('pwncollege_dojo.view_dojo_path', dojo=dojo.reference_id, path=module.id) }}" class="breadcrumb-link">
+            <span>{{ module.name or module.id }}</span>
+          </a>
+        </li>
+        {% endif %}
+        
+        {% if current_dojo_challenge %}
+        <li class="breadcrumb-item active" aria-current="page">
+          <span>{{ current_dojo_challenge.name }}</span>
+        </li>
+        {% endif %}
+      </ol>
+    </nav>
+  </div>
+</div>
+
+<style>
+.breadcrumb-nav {
+  background-color: transparent;
+  border-bottom: none;
+  padding: 8px 0;
+  transition: margin-left 0.3s ease;
+  position: relative;
+  z-index: 900;
+  margin-left: 280px; /* Default to sidebar expanded */
+  margin-top: 60px; /* Account for fixed navbar */
+}
+
+.breadcrumb-nav.sidebar-collapsed {
+  margin-left: 60px;
+}
+
+.breadcrumb-nav.sidebar-hidden {
+  margin-left: 0;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .breadcrumb-nav {
+    margin-left: 0;
+    margin-top: 56px; /* Smaller top margin on mobile */
+  }
+}
+
+.breadcrumb {
+  background: none;
+  padding: 6px 0;
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.breadcrumb-item {
+  color: var(--brand-light-gray);
+}
+
+.breadcrumb-item + .breadcrumb-item::before {
+  content: ">";
+  color: var(--brand-light-gray);
+  padding: 0 8px;
+  font-weight: normal;
+}
+
+.breadcrumb-link {
+  color: var(--brand-light-gray);
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s ease;
+  padding: 2px 4px;
+  border-radius: 2px;
+}
+
+.breadcrumb-link:hover {
+  color: var(--brand-green);
+  text-decoration: none;
+  background-color: rgba(255, 255, 255, 0.05);
+}
+
+.breadcrumb-link i {
+  margin-right: 6px;
+  font-size: 0.8rem;
+}
+
+.breadcrumb-item.active span {
+  color: var(--brand-white);
+  font-weight: 600;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .breadcrumb {
+    font-size: 0.8rem;
+  }
+  
+  .breadcrumb-link span {
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+</style> -->

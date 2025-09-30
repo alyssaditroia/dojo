@@ -1,0 +1,107 @@
+{% from "macros/widgets.html" import navitem %}
+
+<aside id="sidebar" class="sidebar sidebar-expanded bg-dark text-light border-right">
+  <div class="sidebar-toolbar d-flex align-items-center justify-content-between px-3 py-2 border-bottom border-secondary">
+    <button id="sidebar-toggle" class="btn btn-outline-light btn-sm" title="Toggle sidebar">
+      <i class="fas fa-bars"></i>
+    </button>
+    <button id="sidebar-collapse" class="btn btn-outline-light btn-sm" title="Collapse sidebar">
+      <i class="fas fa-angle-left"></i>
+    </button>
+  </div>
+
+  <div class="sidebar-content d-flex flex-column">
+    <div class="accordion" id="sidebar-accordion">
+      <div class="card bg-transparent border-0">
+        <div class="card-header p-0" id="heading-dojos">
+          <button class="btn btn-link btn-block text-left sidebar-section-header d-flex align-items-center" data-section="dojos" data-target="#collapse-dojos" aria-expanded="true" aria-controls="collapse-dojos">
+            <i class="fas fa-torii-gate mr-2"></i>
+            <span class="flex-grow-1">Dojos</span>
+            <i class="fas fa-chevron-right sidebar-chevron"></i>
+          </button>
+        </div>
+  <div id="collapse-dojos" class="collapse show sidebar-section-content" aria-labelledby="heading-dojos">
+          <div id="dojos-content" class="list-group list-group-flush">
+            <div class="sidebar-loading list-group-item bg-transparent text-muted">Loading dojos...</div>
+          </div>
+        </div>
+      </div>
+
+      {% if dojo %}
+      <div class="card bg-transparent border-0">
+        <div class="card-header p-0" id="heading-modules">
+          <button class="btn btn-link btn-block text-left sidebar-section-header d-flex align-items-center" data-section="modules" data-target="#collapse-modules" aria-expanded="true" aria-controls="collapse-modules">
+            <i class="fas fa-book mr-2"></i>
+            <span class="flex-grow-1">Modules</span>
+            <i class="fas fa-chevron-right sidebar-chevron"></i>
+          </button>
+        </div>
+  <div id="collapse-modules" class="collapse show sidebar-section-content" aria-labelledby="heading-modules">
+          <div id="modules-content" class="list-group list-group-flush">
+            {% for module in dojo.modules %}
+            <div class="list-group-item bg-transparent text-light">{{ module.name }}</div>
+            {% else %}
+            <div class="sidebar-empty list-group-item bg-transparent text-muted">No modules available</div>
+            {% endfor %}
+            <div class="sidebar-loading list-group-item bg-transparent text-muted">Loading modules...</div>
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      {% if module %}
+      <div class="card bg-transparent border-0">
+        <div class="card-header p-0" id="heading-challenges">
+          <button class="btn btn-link btn-block text-left sidebar-section-header d-flex align-items-center" data-section="challenges" data-target="#collapse-challenges" aria-expanded="true" aria-controls="collapse-challenges">
+            <i class="fas fa-flag mr-2"></i>
+            <span class="flex-grow-1">Challenges</span>
+            <i class="fas fa-chevron-right sidebar-chevron"></i>
+          </button>
+        </div>
+  <div id="collapse-challenges" class="collapse show sidebar-section-content" aria-labelledby="heading-challenges">
+          <div id="challenges-content" class="list-group list-group-flush">
+            {% if visible_challenges %}
+              {% for challenge in visible_challenges %}
+                {% set solved = challenge.challenge_id in user_solves if user_solves else false %}
+                {% set active = challenge.challenge_id == current_dojo_challenge.challenge_id if current_dojo_challenge else false %}
+                <button class="list-group-item list-group-item-action bg-transparent text-left sidebar-challenge {{ 'challenge-solved' if solved else 'challenge-unsolved' }} {{ 'challenge-active' if active else '' }}"
+                        data-challenge-id="{{ challenge.challenge_id }}"
+                        data-challenge-name="{{ challenge.name }}"
+                        data-challenge-description="{{ challenge.description | truncate(200, true) if challenge.description else 'No description available' }}">
+                  <div class="d-flex align-items-center">
+                    <i class="fas fa-{{ 'check-circle' if solved else 'flag' }} mr-2"></i>
+                    <span class="flex-grow-1 sidebar-challenge-name">{{ challenge.name }}</span>
+                    {% if challenge.points %}
+                    <span class="badge badge-pill badge-light">{{ challenge.points }}pt</span>
+                    {% endif %}
+                  </div>
+                </button>
+              {% endfor %}
+            {% else %}
+              <div class="sidebar-empty list-group-item bg-transparent text-muted">No challenges available</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <div class="card bg-transparent border-0">
+        <div class="card-header p-0" id="heading-help">
+          <button class="btn btn-link btn-block text-left sidebar-section-header d-flex align-items-center" data-section="help">
+            <i class="fas fa-question mr-2"></i>
+            <span class="flex-grow-1">Help</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="challenge-tooltip" class="challenge-tooltip" role="tooltip" aria-hidden="true">
+    <div class="challenge-tooltip-content">
+      <h4 class="challenge-tooltip-title">Challenge Title</h4>
+      <div class="challenge-tooltip-description"></div>
+    </div>
+  </div>
+</aside>
+
+<div id="sidebar-overlay" class="sidebar-overlay"></div>
