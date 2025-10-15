@@ -71,9 +71,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="jumbotron">
+<br>
   <div class="container">
-    <h1 class="brand-white brand-mono-bold">{{ module.name or module.id }}</h1>
+    <h1 class="brand-white brand-mono-bold">
+      {{ module.name or module.id }}
+    </h1>
     <br>
     <h2 class="module-dojo"><a class="brand-white brand-mono-bold" href="{{ url_for('pwncollege_dojo.view_dojo', dojo=dojo.reference_id) }}">{{ dojo.name or dojo.id }}<span class="brand-dot">.</span></a></h2>
 
@@ -84,7 +86,7 @@
     {% endfor %}
     {% endif %}
   </div>
-</div>
+<br>
 <div class="container">
 
   {% if module.description %}
