@@ -1,7 +1,7 @@
 from CTFd.cache import cache
 from CTFd.models import Solves, db
-from datetime import datetime, timedelta
-from sqlalchemy import func, desc
+from datetime import datetime
+from sqlalchemy import func, desc, text
 
 from . import force_cache_updates, get_all_containers, DojoChallenges
 
@@ -16,43 +16,48 @@ def get_container_stats():
 def get_dojo_stats(dojo):
     now = datetime.now()
 
-    total_challenges = (
-        db.session.query(func.count(DojoChallenges.challenge_id))
-        .filter(DojoChallenges.dojo_id == dojo.dojo_id)
-        .scalar()
-    )
+    #challenge_ids = [c.challenge_id for c in dojo.challenges]
 
-    total_stats = dojo.solves().with_entities(
-        func.count(Solves.id).label('total_solves'),
-        func.count(func.distinct(Solves.user_id)).label('total_users')
-    ).first()
+    challenge_ids = [c.challenge_id for c in dojo.challenges]
 
-    total_solves = total_stats.total_solves or 0
-    total_users = total_stats.total_users or 0
+    stats = db.session.execute(
+        text("""
+            SELECT 
+                COUNT(DISTINCT user_id) as total_users,
+                COUNT(*) as total_solves
+            FROM submissions
+            WHERE type = 'correct'
+                AND challenge_id = ANY(:challenge_ids)
+        """),
+        {"challenge_ids": challenge_ids}
+    ).fetchone()
 
-    recent_solves_query = (
-        dojo.solves()
-        .with_entities(
-            Solves.date.label('date'),
-            DojoChallenges.name.label('challenge_name')
-        )
-        .filter(Solves.date >= now - timedelta(days=7))
-        .order_by(desc(Solves.date))
-        .limit(5)
-    )
+    recent = db.session.execute(
+        text("""
+            SELECT s.date, dc.name
+            FROM submissions s
+            INNER JOIN dojo_challenges dc ON dc.challenge_id = s.challenge_id
+            WHERE s.type = 'correct'
+                AND dc.dojo_id = :dojo_id
+            ORDER BY s.date DESC
+            LIMIT 10
+        """),
+        {"dojo_id": dojo.dojo_id}
+    ).fetchall()
 
     recent_solves = [
         {
-            'challenge_name': f'{solve.challenge_name}',
-            'date': solve.date,
-            'date_display': solve.date.strftime('%m/%d/%y %I:%M %p') if solve.date else 'Unknown time'
+            'challenge_name': row.name,
+            'date': row.date,
+            'date_display': row.date.strftime('%m/%d/%y %I:%M %p') if row.date else 'Unknown time'
         }
-        for solve in recent_solves_query
+        for row in recent
     ]
 
     return {
-        'users': total_users,
-        'challenges': total_challenges,
-        'solves': total_solves,
+        'users': stats.total_users or 0,
+        'challenges': dojo.challenges_count,
+        'solves': stats.total_solves or 0,
         'recent_solves': recent_solves,
+        'time': (datetime.now() - now).total_seconds()
     }
