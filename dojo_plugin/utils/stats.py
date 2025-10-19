@@ -16,8 +16,6 @@ def get_container_stats():
 def get_dojo_stats(dojo):
     now = datetime.now()
 
-    #challenge_ids = [c.challenge_id for c in dojo.challenges]
-
     challenge_ids = [c.challenge_id for c in dojo.challenges]
 
     stats = db.session.execute(
@@ -40,7 +38,7 @@ def get_dojo_stats(dojo):
             WHERE s.type = 'correct'
                 AND dc.dojo_id = :dojo_id
             ORDER BY s.date DESC
-            LIMIT 10
+            LIMIT 7
         """),
         {"dojo_id": dojo.dojo_id}
     ).fetchall()

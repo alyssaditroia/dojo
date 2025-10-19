@@ -30,7 +30,15 @@ WHERE s.type = 'correct'
 ORDER BY s.date DESC
 LIMIT 10;
 ```
-
+```
+EXPLAIN ANALYZE SELECT s.date, dc.name
+FROM submissions s
+INNER JOIN dojo_challenges dc ON dc.challenge_id = s.challenge_id
+WHERE s.type = 'correct'
+    AND dc.dojo_id = -3776755
+ORDER BY s.date DESC
+LIMIT 7;
+```
  Planning Time: 1.503 ms
  Execution Time: 162.680 ms
 (20 rows)
@@ -177,6 +185,11 @@ ORDER BY n_live_tup DESC;
 # Solution
 ### Add index
 
+DROP INDEX CONCURRENTLY IF EXISTS submissions_challenge_type_idx;
+DROP INDEX CONCURRENTLY IF EXISTS submissions_date_challenge_type_idx;
+DROP INDEX CONCURRENTLY IF EXISTS submissions_date_type_idx;
+DROP INDEX CONCURRENTLY IF EXISTS dojo_challenges_dojo_challenge_idx;
+
 CREATE INDEX CONCURRENTLY submissions_challenge_type_idx 
 ON submissions (challenge_id) 
 WHERE type = 'correct';
@@ -190,6 +203,8 @@ ON dojo_challenges (dojo_id, challenge_id);
 
 ANALYZE submissions;
 ANALYZE dojo_challenges;
+
+
 
 SELECT 
     calls,
@@ -214,3 +229,20 @@ WHERE schemaname = 'public'
 ORDER BY idx_scan DESC;
 
 docker exec dojo docker logs ctfd 2>&1 | grep "Slow query" | grep "stats.py"
+
+## Index size and info
+```
+SELECT 
+    pi.schemaname,
+    pi.tablename,
+    pi.indexname,
+    pg_size_pretty(pg_relation_size(psi.indexrelid)) as size,
+    psi.idx_scan as scans,
+    psi.idx_tup_read as tuples_read,
+    psi.idx_tup_fetch as tuples_fetched,
+    pi.indexdef
+FROM pg_indexes pi
+JOIN pg_stat_user_indexes psi ON pi.indexname = psi.indexrelname
+WHERE pi.schemaname = 'public'
+ORDER BY psi.idx_scan DESC;
+```
