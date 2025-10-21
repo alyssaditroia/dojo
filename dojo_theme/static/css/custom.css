@@ -299,7 +299,7 @@ p[data-hide="true"] {
 
 .card-body .progress-bar {
     background-color: var(--brand-blue);
-    opacity: 30%;
+    opacity: 0.3;
     position: absolute;
     left: 0px;
     right: 0px;
@@ -307,7 +307,8 @@ p[data-hide="true"] {
     height: 20px;
     max-width: 100%;
     border-radius: 2px;
-    transition: all 0.2s ease;
+    transition: width 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    will-change: width, background-color, box-shadow;
     container: progress-bar / inline-size;
 }
 
@@ -1041,13 +1042,13 @@ code {
     padding: 8px 6px;
     border-bottom: 1px dashed var(--brand-dark-gray);
     font-size: 12px;
-    color: var(--brand-white);
+    color: var(--brand-blue);
     transition: all 0.2s ease;
     margin-bottom: 4px;
 }
 
 .recent-item:hover {
-    color: var(--brand-blue);
+    color: var(--brand-white);
     cursor: default;
 }
 

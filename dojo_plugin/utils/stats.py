@@ -1,7 +1,6 @@
 from CTFd.cache import cache
-from CTFd.models import Solves, db
-from datetime import datetime
-from sqlalchemy import func, desc, text
+from CTFd.models import db
+from sqlalchemy import text
 
 from . import force_cache_updates, get_all_containers, DojoChallenges
 
@@ -12,10 +11,9 @@ def get_container_stats():
             for attr in ["dojo", "module", "challenge"]}
             for container in containers]
 
-#@cache.memoize(timeout=1200, forced_update=force_cache_updates)
+@cache.memoize(timeout=1200, forced_update=force_cache_updates)
 def get_dojo_stats(dojo):
-    now = datetime.now()
-
+    
     challenge_ids = [c.challenge_id for c in dojo.challenges]
 
     stats = db.session.execute(
@@ -57,5 +55,5 @@ def get_dojo_stats(dojo):
         'challenges': dojo.challenges_count,
         'solves': stats.total_solves or 0,
         'recent_solves': recent_solves,
-        'time': (datetime.now() - now).total_seconds()
+        'active': 0,
     }

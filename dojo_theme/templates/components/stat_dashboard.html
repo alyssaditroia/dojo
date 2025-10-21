@@ -1,14 +1,6 @@
-{%- macro render_stat_value(stats, field, show_neutral=True) -%}
-  {% set trend = 0 %}
+{%- macro render_stat_value(stats, field) -%}
   <div class="stat-value">
     {{ "{:,}".format(stats.get(field, 0)) }}
-    {% if trend != 0 or show_neutral %}
-      <span class="stat-trend {% if trend > 0 %}trend-up{% elif trend < 0 %}trend-down{% else %}trend-neutral{% endif %}">
-        {% if trend > 0 %}▲{% elif trend < 0 %}▼{% else %}-{% endif %}{{ trend|abs }}%
-      </span>
-    {% else %}
-      <span class="stat-trend trend-neutral"></span>
-    {% endif %}
   </div>
 {%- endmacro -%}
 
@@ -23,11 +15,11 @@
     {% endif %}
       <div class="stat-box">
         <div class="stat-label">Total Solves</div>
-        <div class="stat-value">{{ render_stat_value(stats, "solves", show_neutral=False) }}</div>
+        <div class="stat-value">{{ render_stat_value(stats, "solves") }}</div>
       </div>
       <div class="stat-box">
         <div class="stat-label">Total Challenges</div>
-        <div class="stat-value">{{ render_stat_value(stats, "challenges", show_neutral=False) }}</div>
+        <div class="stat-value">{{ render_stat_value(stats, "challenges") }}</div>
       </div>
     {% if dojo.award and dojo.award.get("emoji") %}
       <div class="stat-box award">
@@ -65,11 +57,11 @@
     <div class="stat-container">
       <div class="stat-box">
         <div class="stat-label">Unique Hackers</div>
-        <div class="stat-value">{{ render_stat_value(stats, "users", show_neutral=False) }}</div>
+        <div class="stat-value">{{ render_stat_value(stats, "users") }}</div>
       </div>
       <div class="stat-box">
         <div class="stat-label">Hacking Now</div>
-        <div class="stat-value">{{ render_stat_value(stats, "active", show_neutral=False) }}</div>
+        <div class="stat-value">{{ render_stat_value(stats, "active") }}</div>
       </div>
     </div>
   </div>
@@ -91,11 +83,6 @@
       {% else %}
         <div class="recent-item">No awards yet</div>
       {% endif %}
-    </div>
-  </div>
-  <div class="stat-card">
-    <div class="stat-value">
-      {{ render_stat_value(stats, "time", show_neutral=False) }}
     </div>
   </div>
 </div>
