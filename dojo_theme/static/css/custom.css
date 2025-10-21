@@ -1065,8 +1065,11 @@ code {
 
 .modules-header {
     font-size: 2rem;
-    border-bottom: 1px solid var(--brand-green);
-    padding-bottom: 0.25rem;
+}
+
+.dojos-header {
+    font-size: 2rem;
+    text-align: center;
 }
 
 @keyframes navbar-slide-out {
