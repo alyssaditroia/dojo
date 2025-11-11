@@ -299,7 +299,7 @@ p[data-hide="true"] {
 
 .card-body .progress-bar {
     background-color: var(--brand-blue);
-    opacity: 30%;
+    opacity: 0.3;
     position: absolute;
     left: 0px;
     right: 0px;
@@ -307,7 +307,8 @@ p[data-hide="true"] {
     height: 20px;
     max-width: 100%;
     border-radius: 2px;
-    transition: all 0.2s ease;
+    transition: width 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    will-change: width, background-color, box-shadow;
     container: progress-bar / inline-size;
 }
 
@@ -383,7 +384,7 @@ p[data-hide="true"] {
     margin: 0.5em;
     padding: 0em;
     border-radius: 8px !important;
-    background-color: rgba(255, 255, 255, 0.05);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
     box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
     transition: all 0.2s ease;
     overflow: hidden;
@@ -400,7 +401,7 @@ p[data-hide="true"] {
 
 .card-small:hover {
     transform: scale(1.05);
-    background-color: rgba(255, 255, 255, 0.10);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
 }
 
 .card-text {
@@ -895,7 +896,7 @@ code {
 }
 
 .stat-card {
-    background: rgba(255, 255, 255, 0.05);
+    background: linear-gradient(145deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.03) 100%);
     padding: 16px;
     border-radius: 8px;
     height: 195px;
@@ -914,6 +915,7 @@ code {
     padding: 0;
     margin-bottom: 10px;
     font-weight: 600;
+    letter-spacing: 0.5px;
 }
 
 .stat-container {
@@ -967,6 +969,13 @@ code {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+.stat-label.award {
+    font-size: 13px;
+    text-align: center;
 }
 
 .stat-label.award {
@@ -981,7 +990,9 @@ code {
     display: flex;
     align-items: baseline;
     flex-wrap: nowrap;
-    line-height: 1.1;
+    line-height: 1;
+    font-family: 'Space Mono', monospace;
+    text-shadow: 0 0 20px rgba(0, 0, 0, 0.3);
 }
 
 .stat-value.award {
@@ -1054,6 +1065,16 @@ code {
     color: var(--brand-light-gray);
     font-size: 11px;
     margin-top: 4px;
+    font-family: 'Space Mono', monospace;
+}
+
+.modules-header {
+    font-size: 2rem;
+}
+
+.dojos-header {
+    font-size: 2rem;
+    text-align: center;
 }
 
 @keyframes navbar-slide-out {

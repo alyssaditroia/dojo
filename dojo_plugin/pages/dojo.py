@@ -76,7 +76,7 @@ def listing(dojo):
         for container in get_container_stats()
         if container["dojo"] == dojo.reference_id
     )
-    stats["active"] = sum(module_container_counts.values())
+    # stats["active"] = sum(module_container_counts.values())
 
     description_edit_url = None
     if dojo.description and dojo.path.exists():

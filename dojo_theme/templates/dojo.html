@@ -2,11 +2,11 @@
 {% from "macros/widgets.html" import card %}
 
 {% block content %}
-<div class="jumbotron">
-  <div class="container">
+  <br>
+  <div class="dojos-header">
     <h1 class="brand-white brand-mono-bold">{{ dojo.name or dojo.id }}<span class="brand-dot">.</span></h1>
   </div>
-</div>
+  <br>
 <div class="container">
   {% include "components/errors.html" %}
 
@@ -48,16 +48,13 @@
     {% endif %}
   </div>
 
-  <br>
-
   {% if dojo.modules %}
-  <h2 class="row">Stats</h2>
   {% include "components/stat_dashboard.html" %}
   <div class="row"></div>
 
   <br>
 
-  <h2 class="row">Modules</h2>
+  <h2 class="modules-header">Modules</h2>
   <br>
   <ul class="card-list">
     {% for module in dojo.modules %}
@@ -85,7 +82,7 @@
   {% if dojo.show_scoreboard %}
   <br>
 
-  <h2 class="row" id="scoreboard-heading">30-Day Scoreboard:</h2>
+  <h2 class="modules-header" id="scoreboard-heading">30-Day Scoreboard:</h2>
   <br>
   {% from "macros/scoreboard.html" import scoreboard %}
   {{ scoreboard() }}
@@ -99,5 +96,4 @@
 {% block scripts %}
 <script defer onload="loadScoreboard(30, 1);" src="{{ url_for('views.themes', path='js/dojo/scoreboard.js') }}"></script>
 <script defer src="{{ url_for('views.themes', path='js/dojo/copy.js') }}"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 {% endblock %}
