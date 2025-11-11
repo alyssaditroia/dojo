@@ -978,6 +978,11 @@ code {
     text-align: center;
 }
 
+.stat-label.award {
+    font-size: 13px;
+    text-align: center;
+}
+
 .stat-value {
     font-size: 18px;
     font-weight: 700;

@@ -67,8 +67,15 @@ def create_seccomp():
     return json.dumps(seccomp)
 SECCOMP = create_seccomp()
 
+def first_ipv4_address(hostname):
+    try:
+        return sorted(set(info[4][0] for info in socket.getaddrinfo(hostname, None, family=socket.AF_INET)))[0]
+    except Exception as e:
+        warnings.warn(f"Could not resolve IPv4 address for {hostname}: {e}")
+        return None
+
 USER_FIREWALL_ALLOWED = {
-    host: socket.gethostbyname(host)
+    host: first_ipv4_address(host) or "0.0.0.0"
     for host in pathlib.Path("/var/user_firewall.allowed").read_text().split()
 }
 
@@ -79,6 +86,7 @@ MAIL_PORT = os.getenv("MAIL_PORT")
 MAIL_USERNAME = os.getenv("MAIL_USERNAME")
 MAIL_PASSWORD = os.getenv("MAIL_PASSWORD")
 MAIL_ADDRESS = os.getenv("MAIL_ADDRESS")
+CORS_ORIGINS = os.getenv("CORS_ORIGINS")
 DOCKER_USERNAME = os.getenv("DOCKER_USERNAME")
 DOCKER_TOKEN = os.getenv("DOCKER_TOKEN")
 DISCORD_CLIENT_ID = os.getenv("DISCORD_CLIENT_ID")

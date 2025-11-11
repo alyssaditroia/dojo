@@ -36,8 +36,6 @@ define () {
 DEFAULT_DOJO_HOST=localhost.pwn.college
 
 define DOJO_HOST "${DEFAULT_DOJO_HOST}"
-define VIRTUAL_HOST "${DEFAULT_DOJO_HOST}"
-define LETSENCRYPT_HOST "${DEFAULT_DOJO_HOST}"
 define DOJO_ENV development
 define DOJO_WORKSPACE core
 define WORKSPACE_KEY
@@ -49,6 +47,7 @@ define MAIL_PORT
 define MAIL_USERNAME
 define MAIL_PASSWORD
 define MAIL_ADDRESS
+define CORS_ORIGINS
 define DOCKER_USERNAME
 define DOCKER_TOKEN
 define DISCORD_CLIENT_ID
@@ -95,6 +94,7 @@ fi
 mkdir -p /data/workspace/nix
 mkdir -p /data/workspacefs/bin
 mkdir -p /data/ctfd-ipython
+mkdir -p /data/coverage
 
 # Enable systemd journal forwarding to Splunk if configured
 if [ "${ENABLE_SPLUNK}" = "true" ]; then
@@ -158,7 +158,7 @@ iptables -A WORKSPACE-NET -s 10.0.0.0/24 -m conntrack --ctstate NEW -j RETURN
 iptables -A WORKSPACE-NET -s 192.168.42.0/24 -m conntrack --ctstate NEW -j RETURN
 iptables -A WORKSPACE-NET -m conntrack --ctstate ESTABLISHED,RELATED -j RETURN
 for host in $(cat /opt/pwn.college/user_firewall.allowed); do
-    iptables -A WORKSPACE-NET -d $(host $host | awk '{print $NF; exit}') -j RETURN
+    iptables -A WORKSPACE-NET -d $(host $host | awk '/has address/ {print $NF}' | sort | head -n1) -j RETURN
 done
 iptables -A WORKSPACE-NET -j DROP
 
