@@ -62,7 +62,7 @@ ADD https://raw.githubusercontent.com/moby/profiles/master/seccomp/default.json 
 
 RUN <<EOF
 KATA_VERSION=3.19.1
-curl -L https://github.com/kata-containers/kata-containers/releases/download/${KATA_VERSION}/kata-static-${KATA_VERSION}-amd64.tar.xz | tar -xJ --strip-components=2 -C /opt
+curl -L https://github.com/kata-containers/kata-containers/releases/download/${KATA_VERSION}/kata-static-${KATA_VERSION}-arm64.tar.xz | tar -xJ --strip-components=2 -C /opt
 ln -s /opt/kata/bin/containerd-shim-kata-v2 /usr/local/bin/containerd-shim-kata-v2
 EOF
 
@@ -70,7 +70,7 @@ COPY --from=kata-builder /usr/share/kata-containers/vmlinux.container /opt/kata/
 
 RUN <<EOF
 cd /tmp
-wget -O aws.zip "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip"
+wget -O aws.zip "https://awscli.amazonaws.com/awscli-exe-linux-aarch64.zip"
 unzip aws.zip
 ./aws/install
 rm -rf aws.zip aws

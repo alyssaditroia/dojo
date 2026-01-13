@@ -11,8 +11,9 @@ def get_container_stats():
             for attr in ["dojo", "module", "challenge"]}
             for container in containers]
 
-@cache.memoize(timeout=1200, forced_update=force_cache_updates)
+#@cache.memoize(timeout=1200, forced_update=force_cache_updates)
 def get_dojo_stats(dojo):
+<<<<<<< Updated upstream
     
     challenge_ids = [c.challenge_id for c in dojo.challenges]
 
@@ -24,6 +25,17 @@ def get_dojo_stats(dojo):
             FROM submissions
             WHERE type = 'correct'
                 AND challenge_id = ANY(:challenge_ids)
+=======
+    start_time = datetime.now()
+    stats = db.session.execute(
+        text("""
+            SELECT 
+            total_users,
+            total_solves,
+            total_challenges
+        FROM dojo_solve_summary
+        WHERE dojo_id = :dojo_id
+>>>>>>> Stashed changes
         """),
         {"challenge_ids": challenge_ids}
     ).fetchone()
@@ -56,4 +68,8 @@ def get_dojo_stats(dojo):
         'solves': stats.total_solves or 0,
         'recent_solves': recent_solves,
         'active': 0,
+<<<<<<< Updated upstream
+=======
+        'calculation_time': (datetime.now() - start_time).total_seconds()
+>>>>>>> Stashed changes
     }
