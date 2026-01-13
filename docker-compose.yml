@@ -114,6 +114,10 @@ services:
       - main
     restart: always
     hostname: ctfd
+    build: /opt/CTFd
+    platform: linux/arm64
+    user: root
+    entrypoint: ""
     command:
       - /bin/sh
       - -c
@@ -132,19 +136,33 @@ services:
         soft: 32768
         hard: 1048576
     environment:
-      <<: *ctfd-env
-      UPLOAD_FOLDER: /var/uploads
-      WORKERS: 8
-      LOG_FOLDER: /var/log/CTFd
-      ACCESS_LOG: "-"
-      ERROR_LOG: "-"
-      REVERSE_PROXY: "true"
-      SERVER_SENT_EVENTS: "false"
-      SECRET_KEY: ${SECRET_KEY}
-      DOJO_ENV: ${DOJO_ENV}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://future.${DOJO_HOST}}
-      DOCKER_USERNAME: ${DOCKER_USERNAME}
-      DOCKER_TOKEN: ${DOCKER_TOKEN}
+      - UPLOAD_FOLDER=/var/uploads
+      - DATABASE_URL=postgresql+psycopg2://${DB_USER}:${DB_PASS}@pgbouncer:5432/${DB_NAME}
+      - REDIS_URL=redis://cache:6379
+      - WORKERS=8
+      - LOG_FOLDER=/var/log/CTFd
+      - ACCESS_LOG=-
+      - ERROR_LOG=-
+      - REVERSE_PROXY=true
+      - SERVER_SENT_EVENTS=false
+      - SECRET_KEY=${SECRET_KEY}
+      - DOJO_HOST=${DOJO_HOST}
+      - HOST_DATA_PATH=/data
+      - MAIL_SERVER=${MAIL_SERVER}
+      - MAIL_PORT=${MAIL_PORT}
+      - MAIL_USERNAME=${MAIL_USERNAME}
+      - MAIL_PASSWORD=${MAIL_PASSWORD}
+      - MAIL_ADDRESS=${MAIL_ADDRESS}
+      - CORS_ORIGINS=${CORS_ORIGINS}
+      - DOCKER_USERNAME=${DOCKER_USERNAME}
+      - DOCKER_TOKEN=${DOCKER_TOKEN}
+      - DISCORD_CLIENT_ID=${DISCORD_CLIENT_ID}
+      - DISCORD_CLIENT_SECRET=${DISCORD_CLIENT_SECRET}
+      - DISCORD_BOT_TOKEN=${DISCORD_BOT_TOKEN}
+      - DISCORD_GUILD_ID=${DISCORD_GUILD_ID}
+      - INTERNET_FOR_ALL=${INTERNET_FOR_ALL}
+      - MAC_HOSTNAME=${MAC_HOSTNAME}
+      - MAC_USERNAME=${MAC_USERNAME}
     volumes:
       - /data/CTFd/logs:/var/log/CTFd
       - /data/CTFd/uploads:/var/uploads

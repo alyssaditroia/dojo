@@ -1,6 +1,8 @@
+from CTFd.cache import cache
 from CTFd.models import Solves
 from datetime import datetime, timedelta
-from sqlalchemy import func, desc
+from sqlalchemy import func, desc, text
+from CTFd import db
 
 from . import get_all_containers, DojoChallenges
 from .background_stats import get_cached_stat
@@ -26,81 +28,58 @@ def calculate_dojo_stats(dojo):
     total_challenges = len(dojo.challenges)
     visible_challenges = sum(1 for c in dojo.challenges if c.visible())
 
-    total_stats = solves_query.with_entities(
-        func.count(Solves.id).label('total_solves'),
-        func.count(func.distinct(Solves.user_id)).label('total_users')
-    ).first()
+    # stats = db.session.execute(
+    #     text("""
+    #         SELECT 
+    #             COUNT(DISTINCT user_id) as total_users,
+    #             COUNT(*) as total_solves
+    #         FROM submissions
+    #         WHERE type = 'correct'
+    #             AND challenge_id = ANY(:challenge_ids)
+    #     """),
+    start_time = datetime.now()
+    stats = db.session.execute(
+        text("""
+            SELECT 
+            total_users,
+            total_solves,
+            total_challenges
+        FROM dojo_solve_summary
+        WHERE dojo_id = :dojo_id
+        """),
+        {"challenge_ids": challenge_ids}
+    ).fetchone()
 
-    total_solves = total_stats.total_solves or 0
-    total_users = total_stats.total_users or 0
-
-    snapshot_days = [1, 7, 30, 60]
-    chart_labels = ['Today', '1w ago', '1mo ago', '2mo ago']
-    chart_solves = []
-    chart_users = []
-
-    for days_ago in snapshot_days:
-        snapshot_date = now - timedelta(days=days_ago)
-        day_start = snapshot_date.replace(hour=0, minute=0, second=0, microsecond=0)
-        day_end = day_start + timedelta(days=1)
-
-        day_stats = solves_query.filter(
-            Solves.date >= day_start,
-            Solves.date < day_end
-        ).with_entities(
-            func.count(Solves.id).label('day_solves'),
-            func.count(func.distinct(Solves.user_id)).label('day_users')
-        ).first()
-
-        chart_solves.append(day_stats.day_solves or 0)
-        chart_users.append(day_stats.day_users or 0)
-
-    basic_query = (
-        solves_query
-        .with_entities(
-            Solves.date.label('date'),
-            DojoChallenges.name.label('challenge_name')
-        )
-        .filter(Solves.date >= now - timedelta(days=7))
-        .order_by(desc(Solves.date))
-        .limit(5)
-        .all()
-    )
+    recent = db.session.execute(
+        text("""
+            SELECT s.date, dc.name
+            FROM submissions s
+            INNER JOIN dojo_challenges dc ON dc.challenge_id = s.challenge_id
+            WHERE s.type = 'correct'
+                AND dc.dojo_id = :dojo_id
+            ORDER BY s.date DESC
+            LIMIT 7
+        """),
+        {"dojo_id": dojo.dojo_id}
+    ).fetchall()
 
     recent_solves = [
         {
-            'challenge_name': f'{solve.challenge_name}',
-            'date': solve.date,
-            'date_display': solve.date.strftime('%m/%d/%y %I:%M %p') if solve.date else 'Unknown time'
+            'challenge_name': row.name,
+            'date': row.date,
+            'date_display': row.date.strftime('%m/%d/%y %I:%M %p') if row.date else 'Unknown time'
         }
-        for solve in basic_query
+        for row in recent
     ]
 
-    def trend_calc(current, previous):
-        if previous == 0:
-            return 100 if current > 0 else 0
-        change = ((current - previous) / previous) * 100
-        return max(-99, min(999, round(change)))
-
-    trends = {
-        'solves': trend_calc(chart_solves[0], chart_solves[1]),
-        'users': trend_calc(chart_users[0], chart_users[1]),
-        'active': 0,
-        'challenges': 0,
-    }
-
     return {
-        'users': total_users,
-        'challenges': total_challenges,
-        'visible_challenges': visible_challenges,
-        'solves': total_solves,
+        'users': stats.total_users or 0,
+        'challenges': dojo.challenges_count,
+        'solves': stats.total_solves or 0,
         'recent_solves': recent_solves,
-        'trends': trends,
-        'chart_data': {
-            'labels': chart_labels,
-            'solves': chart_solves,
-            'users': chart_users
-        }
+        'active': 0,
+        'calculation_time': (datetime.now() - start_time).total_seconds()
+
     }
 
 def get_dojo_stats(dojo):
@@ -113,11 +92,12 @@ def get_dojo_stats(dojo):
         return cached
 
     return {
-        'users': 0,
-        'challenges': 0,
-        'visible_challenges': 0,
-        'solves': 0,
-        'recent_solves': [],
-        'trends': {'solves': 0, 'users': 0, 'active': 0, 'challenges': 0},
-        'chart_data': {'labels': [], 'solves': [], 'users': []}
+        'users': total_users,
+        'challenges': total_challenges,
+        'visible_challenges': visible_challenges,
+        'solves': total_solves,
+        'recent_solves': recent_solves,
+        'active': 0,
+        'calculation_time': (datetime.now() - start_time).total_seconds()
+
     }
